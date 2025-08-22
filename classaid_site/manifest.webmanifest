@@ -1,0 +1,15 @@
+{
+  "name": "ClassAid",
+  "short_name": "ClassAid",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f0e",
+  "theme_color": "#0b0f0e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
