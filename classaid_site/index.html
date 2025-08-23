@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ClassAid — Study smarter, finish faster.</title>
+  <meta name="description" content="ClassAid is the all-in-one student OS: classes, assignments, GPA, reminders, essay helper, and resources in one fast PWA.">
+  <meta name="theme-color" content="#080f0d">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="container row">
+      <div class="row" style="gap:10px">
+        <img src="/favicon.svg" alt="" width="26" height="26"/>
+        <strong>ClassAid</strong>
+        <span class="badge">Early Access</span>
+      </div>
+      <div class="row" style="gap:10px">
+        <a class="small" href="#features">Features</a>
+        <a class="small" href="#pricing">Pricing</a>
+        <a class="small" href="#faq">FAQ</a>
+        <a class="btn alt floaty" id="installBtn" href="#">Install</a>
+        <a class="btn" href="/app.html">Open the App</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container reveal">
+      <span class="badge">New • PWA</span>
+      <h1>The <span style="background:linear-gradient(90deg,rgba(0,224,144,.28),rgba(178,29,29,.28));padding:2px 8px;border-radius:10px">student OS</span> that actually helps you finish.</h1>
+      <p class="lead">Classes, assignments, GPA, reminders, resources, and an essay helper — all in one clean, fast app. Install it, add your classes, and get gentle nudges until the work is done.</p>
+      <form id="waitlist" class="input reveal">
+        <input type="email" name="email" placeholder="you@school.edu" required aria-label="Email for invite">
+        <button class="btn" type="submit">Request invite</button>
+      </form>
+
+      <div class="cards">
+        <div class="card reveal"><h3>Class & GPA tracker</h3><p>Create classes, add weights, log grades — GPA updates live. Export/Import as a file.</p></div>
+        <div class="card reveal"><h3>Assignments & reminders</h3><p>Plan work, set due dates, and get browser notifications. Snooze or mark done.</p></div>
+        <div class="card reveal"><h3>Resources hub</h3><p>Quick links to calculators, citation tools, and study videos — customizable.</p></div>
+        <div class="card reveal"><h3>Essay helper (local)</h3><p>Rewrite & outline tools that run in your browser — no data leaves your device.</p></div>
+      </div>
+    </div>
+  </header>
+
+  <section id="pricing" class="section">
+    <div class="container reveal">
+      <h2>Simple pricing</h2>
+      <div class="cards">
+        <div class="card"><h3>Free</h3><ul><li>Unlimited classes & assignments</li><li>Local backups & PWA install</li><li>Essay helper (basic)</li></ul><p><b>$0</b>/forever</p></div>
+        <div class="card"><h3>Pro</h3><ul><li>Calendar sync + cross-device</li><li>AI essays, Canvas import</li><li>Priority support</li></ul><p><b>$4</b>/month</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <div class="container reveal">
+      <h2>FAQ</h2>
+      <div class="cards">
+        <div class="card"><h3>Is my data private?</h3><p>Yes. ClassAid runs locally first. Sync is opt-in.</p></div>
+        <div class="card"><h3>Does it work offline?</h3><p>Yes. It’s an installable PWA with a service worker.</p></div>
+        <div class="card"><h3>Will this replace my planner?</h3><p>That’s the goal. Assignments, reminders, and GPA live in one place.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container small">© 2025 ClassAid. All rights reserved • <a href="/privacy.html">Privacy</a> • <a href="/terms.html">Terms</a></div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
