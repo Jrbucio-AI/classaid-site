@@ -1,4 +1,12 @@
-﻿
+﻿try{
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));
+  }
+  if(window.caches){
+    caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k))));
+  }
+}catch(e){}
+
 const UI = (function(){
   function el(tag, attrs={}, children=[]){
     const x = Object.assign(document.createElement(tag), attrs);
@@ -95,3 +103,4 @@ const UI = (function(){
   });
   UI.applySettings(); UI.maybeWelcome();
 })();
+
