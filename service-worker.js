@@ -6,8 +6,8 @@ self.addEventListener('activate', e => {
       await Promise.all(keys.map(k => caches.delete(k)));
       await self.registration.unregister();
       const clients = await self.clients.matchAll({type:'window', includeUncontrolled:true});
-      clients.forEach(c => c.navigate(c.url)); // reload pages
-    } catch (err) { /* ignore */ }
+      clients.forEach(c => c.navigate(c.url)); // reload
+    } catch (err) {}
   })());
 });
-// NOTE: no fetch handler (no interception at all)
+// no fetch handler → no interception
