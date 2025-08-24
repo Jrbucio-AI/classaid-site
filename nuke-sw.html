@@ -1,0 +1,18 @@
+﻿<!doctype html><meta charset='utf-8'><title>Clean SW</title>
+<body style='font-family:system-ui;padding:20px;color:#e7f4ee;background:#0b0f0d'>
+<h2>Cleaning old service workers…</h2>
+<script>
+(async () => {
+  try {
+    if (navigator.serviceWorker) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch(e) {}
+  location.replace('/index.html?fresh=' + Date.now());
+})();
+</script>
