@@ -1,1 +1,0 @@
-// placeholder for any future global events (kept for structure)
