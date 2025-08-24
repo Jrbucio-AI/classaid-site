@@ -1,4 +1,4 @@
-
+﻿
 const UI = (function(){
   function el(tag, attrs={}, children=[]){
     const x = Object.assign(document.createElement(tag), attrs);
@@ -36,7 +36,7 @@ const UI = (function(){
     }
     const hdr = document.getElementById('hdrProfile');
     const installed = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if(hdr) hdr.textContent = `Profile: ${Store.active()} • Mode: ${installed?'App':'Web'}`;
+    if(hdr) hdr.textContent = `Profile: ${Store.active()} â€¢ Mode: ${installed?'App':'Web'}`;
   }
   function quickAddAssignment(){
     const title = prompt('Quick Add: Assignment Title'); if(!title) return;
@@ -53,7 +53,7 @@ const UI = (function(){
   let deferredPrompt = null;
   window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt = e; });
   function openQuickMenu(){ const dd = document.getElementById('qm-dropdown'); if(dd) dd.classList.toggle('open'); }
-  async function doInstall(){ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; } else alert('Use your browser’s “Install App”'); }
+  async function doInstall(){ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; } else alert('Use your browserâ€™s â€œInstall Appâ€'); }
   function toggleFocus(){ const s=Store.settings(); s.focus=!s.focus; Store.setSettings(s); applySettings(); }
   function switchProfile(){ const next = prompt('Switch to profile id (existing or new)'); if(!next) return; Store.create(next); Store.switch(next); location.reload(); }
   function maybeWelcome(){

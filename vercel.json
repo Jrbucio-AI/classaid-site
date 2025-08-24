@@ -1,5 +1,10 @@
 ﻿{
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/nuke", "destination": "/nuke-sw.html" },
+    { "source": "/nuke-sw", "destination": "/nuke-sw.html" },
+    { "source": "/pages/:name", "destination": "/pages/:name.html" }
+  ],
   "headers": [
     { "source": "/(css|js|assets)/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
     { "source": "/service-worker.js", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }

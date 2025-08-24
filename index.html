@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,8 +8,24 @@
   <meta name="theme-color" content="#0b0f0d">
   <link rel="stylesheet" href="./css/style.css">
 
-  <title>Dashboard • ClassAid</title>
-</head>
+  <title>Dashboard â€¢ ClassAid</title>
+<script>
+if (location.search.includes("reset=1")) {
+  (async () => {
+    try {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch(e) {}
+    location.replace("/index.html?sw=off&fresh=" + Date.now());
+  })();
+}
+</script></head>
 <body class="density-comfortable theme-emerald">
 
 <header class="header">
@@ -17,10 +33,10 @@
     <div class="brand">
       <img src="./assets/icon-192.png" alt="ClassAid">
       <h1>ClassAid</h1>
-      <div class="sub" id="hdrProfile">Profile: default • Mode: Web</div>
+      <div class="sub" id="hdrProfile">Profile: default â€¢ Mode: Web</div>
       <div class="quickmenu">
         <div class="dropdown" id="qm-dropdown">
-          <button class="qbtn" onclick="UI.openQuickMenu()">☰</button>
+          <button class="qbtn" onclick="UI.openQuickMenu()">â˜°</button>
           <div class="dropdown-panel">
             <button onclick="UI.toggleFocus()">Toggle Focus</button>
             <a href="./pages/customize.html">Customize</a>
@@ -46,7 +62,7 @@
 <div class="grid cols-3">
   <div class="card">
     <h3>Today</h3>
-    <div id="todaySummary" class="muted">Loading…</div>
+    <div id="todaySummary" class="muted">Loadingâ€¦</div>
     <div class="row" style="margin-top:10px">
       <button class="btn brand" id="btnQuick">+ Quick Assignment</button>
       <a class="btn" href="./pages/assignments.html">Open Assignments</a>
@@ -55,15 +71,15 @@
   <div class="card">
     <h3>GPA Snapshot</h3>
     <div class="row">
-      <div><div class="muted">Unweighted</div><div id="gpaUnw" style="font-size:30px;font-weight:800">—</div></div>
-      <div><div class="muted">Weighted</div><div id="gpaW" style="font-size:30px;font-weight:800">—</div></div>
+      <div><div class="muted">Unweighted</div><div id="gpaUnw" style="font-size:30px;font-weight:800">â€”</div></div>
+      <div><div class="muted">Weighted</div><div id="gpaW" style="font-size:30px;font-weight:800">â€”</div></div>
     </div>
     <div class="muted" id="gpaTip" style="margin-top:8px">Add classes in GPA to see snapshots.</div>
   </div>
   <div class="card">
     <h3>Shortcuts (your picks)</h3>
     <div class="row" id="shortcuts"></div>
-    <p class="muted" style="margin-top:10px">Customize in <a href="./pages/customize.html">Customize</a>. Tips: <kbd>Ctrl+K</kbd> quick add • <kbd>Ctrl+S</kbd> backup</p>
+    <p class="muted" style="margin-top:10px">Customize in <a href="./pages/customize.html">Customize</a>. Tips: <kbd>Ctrl+K</kbd> quick add â€¢ <kbd>Ctrl+S</kbd> backup</p>
   </div>
 </div>
 <script>
@@ -87,19 +103,19 @@
       today.slice(0,6).forEach(t=> html+='<li class="muted">'+t.title+' <span class="pill">'+ new Date(t.due).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) +'</span></li>');
       html+='</ul>';
     }
-    html+='<div style="margin-top:8px" class="muted">Open: '+open.length+' • Total: '+a.length+'</div>';
+    html+='<div style="margin-top:8px" class="muted">Open: '+open.length+' â€¢ Total: '+a.length+'</div>';
     document.getElementById('todaySummary').innerHTML = html;
   }
   refresh(); setInterval(refresh, 60000);
   document.getElementById('btnQuick').onclick = UI.quickAddAssignment;
   const g = GPA.compute();
-  document.getElementById('gpaUnw').textContent = isNaN(g.unweighted)?'—':g.unweighted.toFixed(2);
-  document.getElementById('gpaW').textContent = isNaN(g.weighted)?'—':g.weighted.toFixed(2);
+  document.getElementById('gpaUnw').textContent = isNaN(g.unweighted)?'â€”':g.unweighted.toFixed(2);
+  document.getElementById('gpaW').textContent = isNaN(g.weighted)?'â€”':g.weighted.toFixed(2);
   document.getElementById('gpaTip').style.display = isNaN(g.unweighted)?'block':'none';
 })();
 </script>
 </div></div>
-<footer class="footer"><div class="container">© <span id="year"></span> ClassAid. All rights reserved.</div></footer>
+<footer class="footer"><div class="container">Â© <span id="year"></span> ClassAid. All rights reserved.</div></footer>
 <div class="modal" id="modal"><div class="panel"></div></div>
 <script src="./js/store.js"></script>
 <script src="./js/ui.js"></script>
