@@ -85,7 +85,7 @@ const UI = (function(){
 })();
 
 (function(){
-  if('serviceWorker' in navigator){ navigator.serviceWorker.register('./service-worker.js').catch(()=>{}); }
+  if('serviceWorker' in navigator && !location.search.includes('sw=off')){ navigator.serviceWorker.register('./service-worker.js').catch(()=>{}); }
   const y = document.getElementById('year'); if(y) y.textContent = new Date().getFullYear();
   const installed = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if(installed) UI.enableInstalledMode();
