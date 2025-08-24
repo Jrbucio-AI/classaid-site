@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ClassAid</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/icon-192.png">
+  <meta name="theme-color" content="#0b0f0d">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <title>Dashboard • ClassAid</title>
+</head>
+<body class="density-comfortable theme-emerald">
+
+<header class="header">
+  <div class="container">
+    <div class="brand">
+      <img src="/assets/icon-192.png" alt="ClassAid">
+      <h1>ClassAid</h1>
+      <div class="sub" id="hdrProfile">Profile: default • Mode: Web</div>
+    </div>
+    <nav class="nav" id="nav">
+      <a data-mod="dashboard" href="/index.html">Dashboard</a>
+      <a data-mod="assignments" href="/pages/assignments.html">Assignments</a>
+      <a data-mod="gpa" href="/pages/gpa.html">GPA</a>
+      <a data-mod="flashcards" href="/pages/flashcards.html">Flashcards</a>
+      <a data-mod="essay" href="/pages/essay.html">Essay</a>
+      <a data-mod="import" href="/pages/import.html">Import</a>
+      <a data-mod="customize" href="/pages/customize.html">Customize</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page"><div class="container">
+<div class="grid cols-3">
+  <div class="card">
+    <h3>Today</h3>
+    <div id="todaySummary" class="muted">Loading…</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn brand" id="btnQuick">+ Quick Assignment</button>
+      <a class="btn" href="/pages/assignments.html">Open Assignments</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>GPA Snapshot</h3>
+    <div class="row">
+      <div><div class="muted">Unweighted</div><div id="gpaUnw" style="font-size:30px;font-weight:800">—</div></div>
+      <div><div class="muted">Weighted</div><div id="gpaW" style="font-size:30px;font-weight:800">—</div></div>
+    </div>
+    <div class="muted" id="gpaTip" style="margin-top:8px">Add classes in GPA to see snapshots.</div>
+  </div>
+  <div class="card">
+    <h3>Shortcuts (your picks)</h3>
+    <div class="row" id="shortcuts"></div>
+    <p class="muted" style="margin-top:10px">Customize in <a href="/pages/customize.html">Customize</a>. Tips: <kbd>Ctrl+K</kbd> quick add • <kbd>Ctrl+S</kbd> backup</p>
+  </div>
+</div>
+<script>
+(function(){
+  // shortcuts from settings
+  const sc = (Store.settings().shortcuts||['assignments','gpa','flashcards']).map(id=>{
+    const map = {assignments:'Assignments', gpa:'GPA', flashcards:'Flashcards', essay:'Essay', import:'Import'};
+    return {id, label: map[id]||id, href: '/pages/'+(id==='gpa'? 'gpa':'') + (id==='assignments'? 'assignments':'' ) + (id==='flashcards'? 'flashcards':'' ) + (id==='essay'? 'essay':'' ) + (id==='import'? 'import':'' ) + '.html'};
+  });
+  const row = document.getElementById('shortcuts');
+  sc.forEach(s=>{
+    const a = document.createElement('a'); a.className='btn'; a.href = s.href; a.textContent = s.label; row.appendChild(a);
+  });
+
+  function refresh(){
+    const a = Store.get().assignments||[];
+    const now = new Date();
+    const today = a.filter(x=> new Date(x.due).toDateString() === now.toDateString());
+    const open = a.filter(x=> x.status!=='done');
+    let html='';
+    if(today.length===0) html+='<div>No assignments due today.</div>';
+    else{
+      html+='<div><b>'+today.length+'</b> due today:</div><ul>';
+      today.slice(0,6).forEach(t=> html+='<li class="muted">'+t.title+' <span class="pill">'+ new Date(t.due).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) +'</span></li>');
+      html+='</ul>';
+    }
+    html+='<div style="margin-top:8px" class="muted">Open: '+open.length+' • Total: '+a.length+'</div>';
+    document.getElementById('todaySummary').innerHTML = html;
+  }
+  refresh(); setInterval(refresh, 60000);
+  document.getElementById('btnQuick').onclick = UI.quickAddAssignment;
+  const g = GPA.compute();
+  document.getElementById('gpaUnw').textContent = isNaN(g.unweighted)?'—':g.unweighted.toFixed(2);
+  document.getElementById('gpaW').textContent = isNaN(g.weighted)?'—':g.weighted.toFixed(2);
+  document.getElementById('gpaTip').style.display = isNaN(g.unweighted)?'block':'none';
+})();
+</script>
+</div></div>
+
+<footer class="footer"><div class="container">© <span id="year"></span> ClassAid. All rights reserved.</div></footer>
+
+<div class="modal" id="modal"><div class="panel"></div></div>
+<script src="/js/store.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/gpa.js"></script><script src="/js/assignments.js"></script>
+</body></html>

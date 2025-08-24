@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ClassAid</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/icon-192.png">
+  <meta name="theme-color" content="#0b0f0d">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <title>Essay • ClassAid</title>
+</head>
+<body class="density-comfortable theme-emerald">
+
+<header class="header">
+  <div class="container">
+    <div class="brand">
+      <img src="/assets/icon-192.png" alt="ClassAid">
+      <h1>ClassAid</h1>
+      <div class="sub" id="hdrProfile">Profile: default • Mode: Web</div>
+    </div>
+    <nav class="nav" id="nav">
+      <a data-mod="dashboard" href="/index.html">Dashboard</a>
+      <a data-mod="assignments" href="/pages/assignments.html">Assignments</a>
+      <a data-mod="gpa" href="/pages/gpa.html">GPA</a>
+      <a data-mod="flashcards" href="/pages/flashcards.html">Flashcards</a>
+      <a data-mod="essay" href="/pages/essay.html">Essay</a>
+      <a data-mod="import" href="/pages/import.html">Import</a>
+      <a data-mod="customize" href="/pages/customize.html">Customize</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page"><div class="container">
+<h2>Essay Helper</h2>
+<div class="grid cols-2">
+  <div class="card">
+    <label>Prompt</label>
+    <textarea id="ehPrompt" rows="5" placeholder="Paste the essay prompt…"></textarea>
+    <div class="row" style="margin-top:8px"><input id="ehThesis" placeholder="Your thesis (one sentence)" /></div>
+    <div class="row" style="margin-top:8px">
+      <select id="ehStructure"><option value="five">Five‑paragraph</option><option value="compare">Compare / Contrast</option><option value="argument">Argumentative</option><option value="narrative">Narrative</option></select>
+      <button class="btn brand" id="ehOutlineBtn">Generate Outline</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row">
+      <select id="ehTone"><option>Academic neutral</option><option>Persuasive</option><option>Reflective</option><option>Analytical</option></select>
+      <select id="ehTransitions"><option>Balanced transitions</option><option>Concise</option><option>Elaborate</option></select>
+      <button class="btn" id="ehCopy">Copy Outline</button>
+    </div>
+    <textarea id="ehOutput" rows="16" placeholder="Your outline will appear here…"></textarea>
+  </div>
+</div>
+</div></div>
+
+<footer class="footer"><div class="container">© <span id="year"></span> ClassAid. All rights reserved.</div></footer>
+
+<div class="modal" id="modal"><div class="panel"></div></div>
+<script src="/js/store.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/essay.js"></script>
+</body></html>
