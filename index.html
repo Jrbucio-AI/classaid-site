@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ClassAid</title>
+  <meta name="theme-color" content="#0b0f0d" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect rx='12' width='64' height='64' fill='%230b0f0d'/%3E%3Crect x='3' y='3' width='58' height='58' rx='10' stroke='%2322e392' stroke-width='3' fill='none'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-family='Verdana' font-size='26' fill='%23e7f4ee'%3ECA%3C/text%3E%3C/svg%3E"/>
+  <style>
+    :root{
+      --bg:#0b0f0d; --ink:#e7f4ee; --muted:#a5d4bf; --card:#121a16; --panel:#0f1612; --border:rgba(255,255,255,.08);
+      --brand:#22e392; --ring:rgba(34,227,146,.28); --shadow:0 18px 40px rgba(0,0,0,.45); --radius:18px;
+      --accent2:#8bf7ca; --warn:#ffbf3c; --danger:#ff6f91;
+    }
+    /* Themes */
+    .theme-cinematic{ --brand:#e50914; --accent2:#ffb3b7; --panel:#0d0d0f; --card:#141417; --ring:rgba(229,9,20,.25) }
+    .theme-minimal{ --brand:#ff0033; --panel:#0e0e0f; --card:#151516; --ring:rgba(255,0,51,.25) }
+    .theme-community{ --brand:#ff4500; --panel:#0e140f; --card:#141b15; --ring:rgba(255,69,0,.25) }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:
+      radial-gradient(1200px 700px at 10% -20%,#163223 0%,#0f1b14 50%,transparent 100%),
+      linear-gradient(180deg,var(--bg),var(--bg));
+      color:var(--ink); font:15px/1.5 ui-sans-serif,system-ui,Segoe UI,Inter,Roboto,Arial}
+    a{color:var(--ink); text-decoration:none}
+
+    /* Layout */
+    .app{display:grid; grid-template-columns: 78px 1fr; grid-template-rows: 64px 1fr; height:100vh}
+    .topbar{grid-column:1/3; display:flex; align-items:center; gap:12px; padding:12px 16px; backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(12,18,15,.9), rgba(12,18,15,.7)); border-bottom:1px solid var(--border)}
+    .brand{display:flex; align-items:center; gap:10px}
+    .brand .logo{width:32px; height:32px; border-radius:10px; background:conic-gradient(from 200deg, var(--brand), #0c2a1d 60%); box-shadow: var(--shadow)}
+    .brand h1{font-size:18px; margin:0; letter-spacing:.4px}
+    .search{flex:1; display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--border); padding:8px 10px; border-radius:12px}
+    .search input{flex:1; border:0; outline:0; background:transparent; color:var(--ink)}
+    .profile{display:flex; align-items:center; gap:10px}
+    .pill{padding:4px 10px; border:1px solid var(--border); background:#0e2318; border-radius:999px; font-size:12px}
+
+    .sidebar{grid-row:2; background:linear-gradient(180deg, rgba(12,18,15,.92), rgba(12,18,15,.8)); border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; padding:12px 8px; gap:8px}
+    .navbtn{width:54px; height:54px; border-radius:14px; display:grid; place-items:center; border:1px solid var(--border); background:var(--panel); cursor:pointer}
+    .navbtn.active{background:var(--brand); color:#051d13; font-weight:800}
+
+    .content{grid-row:2; padding:18px 22px; overflow:auto}
+
+    /* Hero */
+    .hero{background:linear-gradient(180deg, rgba(34,227,146,.08), transparent); border:1px solid var(--border); border-radius: var(--radius); padding:24px; box-shadow:var(--shadow); display:grid; grid-template-columns: 1fr auto; gap:16px}
+    .hero h2{margin:0 0 6px 0; font-size:28px}
+    .hero .actions{display:flex; gap:10px; align-items:center}
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--border); background:#0d2016; color:var(--ink); border-radius:12px; cursor:pointer}
+    .btn.brand{background:var(--brand); color:#061d12; font-weight:800}
+    .btn.ghost{background:transparent}
+
+    /* Rows (Netflix-style carousels) */
+    .row{margin-top:18px}
+    .row h3{margin:0 0 10px 4px}
+    .rail{display:flex; gap:12px; overflow:auto; padding-bottom:6px}
+    .card{min-width:280px; background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:14px}
+    .thumb{height:120px; border-radius:12px; background:linear-gradient(135deg, rgba(34,227,146,.25), rgba(34,227,146,0) 60%), linear-gradient(135deg,#0f2219,#0b1611); border:1px solid var(--border)}
+    .meta{display:flex; justify-content:space-between; align-items:center; margin-top:8px}
+    .chip{font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--border); background:#0f2219}
+
+    /* Views */
+    .view{display:none}
+    .view.active{display:block}
+
+    /* Assignments grid looks like a video grid */
+    .grid{display:grid; gap:14px}
+    @media(min-width:900px){.grid.cols-3{grid-template-columns:repeat(3, 1fr)} .grid.cols-2{grid-template-columns:1.6fr 1fr}}
+
+    .assign-card{display:grid; grid-template-columns: 120px 1fr auto; gap:12px; align-items:center; border:1px solid var(--border); background:var(--card); border-radius:14px; padding:10px}
+    .assign-card .due{font-weight:700}
+
+    /* GPA */
+    .stat{border:1px solid var(--border); background:var(--card); border-radius:16px; padding:16px}
+    .ring{width:96px; height:96px; border-radius:50%; background:conic-gradient(var(--brand) var(--p), #203329 var(--p)); display:grid; place-items:center; margin-right:10px}
+
+    /* Decks */
+    .deck{min-width:220px; border:1px solid var(--border); background:var(--card); border-radius:14px; padding:12px}
+    .miniplayer{position:sticky; bottom:12px; background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:12px; display:none}
+
+    /* Settings */
+    label{font-size:13px; opacity:.95}
+    input, select, textarea{width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:#0f1a14; color:var(--ink); outline:none}
+    input:focus, select:focus, textarea:focus{box-shadow:0 0 0 4px var(--ring)}
+
+    /* Tiny util */
+    .rowh{display:flex; align-items:center; gap:10px}
+    .right{margin-left:auto}
+  </style>
+</head>
+<body class="theme-cinematic">
+  <div class="app">
+    <div class="topbar">
+      <div class="brand"><div class="logo"></div><h1>ClassAid</h1></div>
+      <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="q" placeholder="Search everything… (assignments, decks, classes)"/></div>
+      <div class="profile">
+        <span id="profileLabel" class="pill">Profile: default</span>
+        <button id="switchBtn" class="btn">Switch</button>
+        <select id="themeSel" class="btn"><option value="cinematic">Cinematic</option><option value="minimal">Minimal</option><option value="community">Community</option></select>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <a class="navbtn" href="#/home" data-route="#/home" title="Home">🏠</a>
+      <a class="navbtn" href="#/assignments" data-route="#/assignments" title="Assignments">🗂️</a>
+      <a class="navbtn" href="#/planner" data-route="#/planner" title="Planner">🗓️</a>
+      <a class="navbtn" href="#/gpa" data-route="#/gpa" title="GPA">📈</a>
+      <a class="navbtn" href="#/decks" data-route="#/decks" title="Decks">🃏</a>
+      <a class="navbtn" href="#/essay" data-route="#/essay" title="Essay">📝</a>
+      <a class="navbtn" href="#/settings" data-route="#/settings" title="Settings">⚙️</a>
+    </aside>
+
+    <main class="content">
+
+      <!-- HOME -->
+      <section id="view-home" class="view active">
+        <div class="hero">
+          <div>
+            <h2>Welcome back 👋</h2>
+            <p>Keep your streak going. Continue where you left off or discover new study mixes curated for you.</p>
+          </div>
+          <div class="actions">
+            <button id="quickAddBtn" class="btn brand">+ Quick Assignment</button>
+            <a class="btn" href="#/assignments">Open Assignments</a>
+          </div>
+        </div>
+
+        <div class="row">
+          <h3>Continue</h3>
+          <div id="rail-continue" class="rail"></div>
+        </div>
+
+        <div class="row">
+          <h3>Due Soon</h3>
+          <div id="rail-soon" class="rail"></div>
+        </div>
+
+        <div class="row">
+          <h3>Study Mixes</h3>
+          <div id="rail-mixes" class="rail"></div>
+        </div>
+      </section>
+
+      <!-- ASSIGNMENTS -->
+      <section id="view-assignments" class="view">
+        <div class="rowh">
+          <h2 style="margin:0">Assignments</h2>
+          <div class="right rowh">
+            <select id="fStatus"><option value="any">Any</option><option value="open">Open</option><option value="done">Done</option></select>
+            <input id="fDays" type="number" min="0" placeholder="Due ≤ days" style="width:120px">
+            <button id="addAssign" class="btn brand">+ New</button>
+          </div>
+        </div>
+        <div id="assignGrid" class="grid cols-3" style="margin-top:12px"></div>
+      </section>
+
+      <!-- PLANNER (simple weekly strip) -->
+      <section id="view-planner" class="view">
+        <div class="rowh"><h2 style="margin:0">Planner</h2><span class="pill right" id="weekLabel"></span></div>
+        <div id="planStrip" class="rail" style="margin-top:12px"></div>
+      </section>
+
+      <!-- GPA -->
+      <section id="view-gpa" class="view">
+        <div class="grid cols-2">
+          <div class="stat">
+            <h3>Your Classes</h3>
+            <div id="classes"></div>
+            <div class="rowh" style="margin-top:10px">
+              <input id="clsName" placeholder="Class (e.g., AP Physics)"/>
+              <select id="clsGrade"><option>A+</option><option>A</option><option>A-</option><option>B+</option><option>B</option><option>B-</option><option>C+</option><option>C</option><option>C-</option><option>D+</option><option>D</option><option>F</option></select>
+              <input id="clsCred" type="number" step="0.5" value="1" style="width:90px"/>
+              <select id="clsWeight"><option>None</option><option>Honors</option><option>AP</option></select>
+              <button id="addClass" class="btn brand">Add</button>
+            </div>
+          </div>
+          <div class="stat rowh">
+            <div id="ringUnw" class="ring" style="--p:0deg"><b id="unw">—</b></div>
+            <div id="ringW" class="ring" style="--p:0deg"><b id="w">—</b></div>
+            <div class="right muted">Weights: +1.0 for AP, +0.5 for Honors.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DECKS -->
+      <section id="view-decks" class="view">
+        <div class="rowh"><h2 style="margin:0">Decks</h2><button id="newDeck" class="btn brand right">+ New Deck</button></div>
+        <div id="deckRail" class="rail" style="margin-top:12px"></div>
+        <div id="mini" class="miniplayer"></div>
+      </section>
+
+      <!-- ESSAY -->
+      <section id="view-essay" class="view">
+        <div class="grid cols-2">
+          <div class="stat">
+            <label>Prompt</label>
+            <textarea id="esPrompt" rows="6" placeholder="Paste the prompt…"></textarea>
+            <div class="rowh" style="margin-top:8px"><input id="esThesis" placeholder="Your thesis"><select id="esMode"><option value="five">Five‑paragraph</option><option value="argument">Argumentative</option><option value="compare">Compare/Contrast</option><option value="narrative">Narrative</option></select><button id="esGen" class="btn brand">Generate Outline</button></div>
+          </div>
+          <div class="stat">
+            <div class="rowh"><select id="esTone"><option>Academic neutral</option><option>Persuasive</option><option>Reflective</option><option>Analytical</option></select><button id="esCopy" class="btn right">Copy</button></div>
+            <textarea id="esOut" rows="14" placeholder="Your outline will appear here…"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="view-settings" class="view">
+        <div class="grid cols-2">
+          <div class="stat">
+            <h3>Personalize</h3>
+            <label>Theme</label>
+            <select id="themePick"><option value="cinematic">Cinematic (Netflix)</option><option value="minimal">Minimal (YouTube)</option><option value="community">Community (Reddit)</option></select>
+            <div class="rowh" style="margin-top:10px"><label>Density</label><select id="densityPick"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></div>
+            <div class="rowh" style="margin-top:10px"><label><input type="checkbox" id="focus"> Focus Mode</label></div>
+          </div>
+          <div class="stat">
+            <h3>Data</h3>
+            <div class="rowh"><button id="exportJson" class="btn">Export JSON</button><button id="importJson" class="btn">Import JSON</button><button id="exportEnc" class="btn">Export Encrypted</button><button id="importEnc" class="btn">Import Encrypted</button></div>
+            <div class="rowh" style="margin-top:10px"><button id="clearAll" class="btn" style="border-color:#3a171c;background:#261012;color:#ffdfe1">Clear Everything</button></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+  // ======= SW hard kill on first load (fixes previous deploys) =======
+  (async ()=>{ try{ if('serviceWorker' in navigator){ const regs = await navigator.serviceWorker.getRegistrations(); regs.forEach(r=>r.unregister()); } if(window.caches){ const ks = await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){} })();
+
+  // ======= Tiny State Store (localStorage) =======
+  const Store = (()=>{
+    const KEY = 'classaid-v4';
+    function read(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {} }catch{ return {} }
+    }
+    function write(v){ localStorage.setItem(KEY, JSON.stringify(v)); }
+    function ensure(){ const s = read(); if(!s.active) s.active = 'default'; s.profiles = s.profiles || { default: { data: seed(), settings: { theme:'cinematic', density:'comfortable', focus:false } } }; if(!s.profiles[s.active]) s.profiles[s.active] = { data: seed(), settings:{theme:'cinematic', density:'comfortable', focus:false} }; write(s); return s }
+    function seed(){ return { assignments: [], decks: [], classes: [] } }
+    function ctx(){ const s = ensure(); return {root:s, prof:s.profiles[s.active]} }
+    return {
+      active(){ return ensure().active },
+      switch(id){ const s = ensure(); if(!s.profiles[id]) s.profiles[id] = { data:{assignments:[],decks:[],classes:[]}, settings:{theme:'cinematic',density:'comfortable',focus:false} }; s.active = id; write(s); },
+      settings(){ return ctx().prof.settings },
+      setSettings(v){ const s = ensure(); s.profiles[s.active].settings = v; write(s); },
+      data(){ return ctx().prof.data },
+      setData(d){ const s = ensure(); s.profiles[s.active].data = d; write(s); },
+      export(){ return JSON.stringify(ensure(), null, 2) },
+      import(json){ localStorage.setItem(KEY, json) }
+    }
+  })();
+
+  const UI = {
+    route(to){ location.hash = to; },
+    render(){ const m = location.hash || '#/home'; document.querySelectorAll('.view').forEach(v=> v.classList.remove('active')); const el = document.getElementById('view-'+m.slice(2)); if(el) el.classList.add('active'); document.querySelectorAll('.navbtn').forEach(b=> b.classList.toggle('active', b.dataset.route===m)); },
+    apply(){ const s = Store.settings(); document.body.className = 'theme-'+(s.theme||'cinematic') + (s.density==='compact'?' density-compact':''); if(s.focus) document.body.classList.add('focus'); document.getElementById('profileLabel').textContent = 'Profile: '+Store.active(); document.getElementById('themeSel').value = s.theme || 'cinematic' },
+  };
+
+  window.addEventListener('hashchange', ()=>{ UI.render(); if(location.hash==="#/home") homeRender() })
+
+  // ======= HOME =======
+  function homeRender(){ const d = Store.data(); const cont = document.getElementById('rail-continue'); cont.innerHTML = '';
+    const recent = [...d.assignments].sort((a,b)=> new Date(b.due)-new Date(a.due)).slice(0,8);
+    recent.forEach(a=> cont.appendChild(card(`Assignment • ${a.cls||'General'}`, a.title, niceDate(a.due), ()=>{ location.hash = '#/assignments' }) ))
+    const soon = d.assignments.filter(a=> new Date(a.due)-Date.now() < 1000*60*60*24*5).slice(0,10);
+    const railSoon = document.getElementById('rail-soon'); railSoon.innerHTML='';
+    soon.forEach(a=> railSoon.appendChild(card('Due Soon', a.title, until(a.due), ()=>{ location.hash='#/assignments' })))
+    const mixes = [ ['Focus • 25m', 'Pomodoro + Lo‑fi'], ['Quick Wins', 'Finish 3 small tasks'], ['Memory Run', '10 cards × 3 decks'] ];
+    const railMix = document.getElementById('rail-mixes'); railMix.innerHTML=''; mixes.forEach(m=> railMix.appendChild(card(m[0], m[1], 'Tap to open', ()=> alert('Coming soon'))))
+  }
+
+  function card(tag, title, sub, on){ const el = document.createElement('div'); el.className='card'; el.innerHTML=`<div class="thumb"></div><div class="meta"><span class="chip">${tag}</span><span class="muted">${sub}</span></div><div style="margin-top:6px;font-weight:700">${title}</div>`; el.onclick=on; return el }
+  function niceDate(iso){ const d = new Date(iso); return d.toLocaleDateString()+ ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) }
+  function until(iso){ const ms = new Date(iso)-Date.now(); if(ms<0) return 'overdue'; const h = Math.round(ms/36e5); if(h<24) return h+'h'; const d=Math.round(h/24); return d+'d' }
+
+  // ======= ASSIGNMENTS =======
+  function renderAssignments(){ const st = Store.data(); const grid = document.getElementById('assignGrid');
+    const status = document.getElementById('fStatus').value; const days = Number(document.getElementById('fDays').value||'0');
+    let list = st.assignments.slice(); if(status!=='any') list = list.filter(a=> a.status===status); if(days>0){ const cut = Date.now()+days*864e5; list = list.filter(a=> new Date(a.due).getTime() <= cut) }
+    list.sort((a,b)=> new Date(a.due)-new Date(b.due)); grid.innerHTML='';
+    if(list.length===0){ grid.innerHTML = '<div class="muted">No assignments match your filter.</div>'; return }
+    list.forEach((a,i)=>{
+      const el = document.createElement('div'); el.className='assign-card'; el.innerHTML = `
+        <div class='thumb'></div>
+        <div>
+          <div class='rowh'><div style='font-weight:700'>${a.title}</div><span class='chip right'>${a.cls||'General'}</span></div>
+          <div class='muted'>${a.status==='done'?'✓ Completed':'Open'}</div>
+        </div>
+        <div class='rowh right'><div class='due'>${until(a.due)}</div><button class='btn' data-ed='${i}'>Edit</button><button class='btn' data-done='${i}'>${a.status==='done'?'Reopen':'Done'}</button><button class='btn' data-del='${i}'>Delete</button></div>`;
+      grid.appendChild(el)
+    })
+    grid.querySelectorAll('button[data-ed]').forEach(b=> b.onclick = ()=> editAssign(Number(b.dataset.ed)))
+    grid.querySelectorAll('button[data-done]').forEach(b=> b.onclick = ()=> toggleAssign(Number(b.dataset.done)))
+    grid.querySelectorAll('button[data-del]').forEach(b=> b.onclick = ()=> delAssign(Number(b.dataset.del)))
+  }
+  function addAssign(){ const title = prompt('Title?'); if(!title) return; const cls = prompt('Class? (optional)')||''; const due = prompt('Due (YYYY-MM-DD HH:MM)'); const d = Store.data(); const iso = due? new Date(due.replace(' ','T')).toISOString() : new Date(Date.now()+864e5).toISOString(); d.assignments.push({title, cls, due:iso, status:'open'}); Store.setData(d); renderAssignments(); homeRender() }
+  function editAssign(i){ const d = Store.data(); const a = d.assignments[i]; const t = prompt('Title', a.title); if(!t) return; const c = prompt('Class', a.cls||'')||''; const due = prompt('Due (YYYY-MM-DD HH:MM)', a.due.slice(0,16).replace('T',' ')); if(due){ a.due = new Date(due.replace(' ','T')).toISOString() } a.title=t; a.cls=c; Store.setData(d); renderAssignments(); homeRender() }
+  function toggleAssign(i){ const d=Store.data(); d.assignments[i].status = d.assignments[i].status==='done'?'open':'done'; Store.setData(d); renderAssignments(); homeRender() }
+  function delAssign(i){ const d=Store.data(); d.assignments.splice(i,1); Store.setData(d); renderAssignments(); homeRender() }
+
+  // ======= PLANNER =======
+  function renderPlanner(){ const d = Store.data(); const rail = document.getElementById('planStrip'); rail.innerHTML=''; const now = new Date(); const start = new Date(now); start.setDate(now.getDate()-3); start.setHours(0,0,0,0); const week = []; for(let i=0;i<10;i++){ const x = new Date(start); x.setDate(start.getDate()+i); week.push(x) }
+    document.getElementById('weekLabel').textContent = week[0].toLocaleDateString()+' - '+week.at(-1).toLocaleDateString();
+    week.forEach(day=>{ const col = document.createElement('div'); col.className='card'; col.style.minWidth='200px'; col.innerHTML = `<div style='font-weight:700'>${day.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'})}</div><div id='d${+day}'></div>`; rail.appendChild(col); d.assignments.filter(a=> new Date(a.due).toDateString()===day.toDateString()).forEach(a=>{ const line = document.createElement('div'); line.className='rowh'; line.style.marginTop='6px'; line.innerHTML = `<span class='chip'>${a.cls||'General'}</span><span class='right'>${new Date(a.due).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span><div style='width:100%'></div><span>${a.title}</span>`; col.appendChild(line) }) }) }
+
+  // ======= GPA =======
+  function renderGPA(){ const d=Store.data(); const wrap=document.getElementById('classes'); wrap.innerHTML=''; d.classes.forEach((c,i)=>{ const row=document.createElement('div'); row.className='rowh'; row.style.marginTop='8px'; row.innerHTML=`<span class='chip'>${c.weight||'None'}</span><b>${c.name}</b><span class='right pill'>${c.grade}</span><span class='pill'>${c.credits} cr</span><button class='btn' data-del='${i}'>Delete</button>`; wrap.appendChild(row) }); wrap.querySelectorAll('button[data-del]').forEach(b=> b.onclick=()=>{ d.classes.splice(Number(b.dataset.del),1); Store.setData(d); renderGPA() })
+    const gp = {'A+':4.0,'A':4.0,'A-':3.7,'B+':3.3,'B':3.0,'B-':2.7,'C+':2.3,'C':2.0,'C-':1.7,'D+':1.3,'D':1.0,'F':0.0}; let uw=0,w=0,cr=0; d.classes.forEach(c=>{ const g=gp[c.grade]||0; const cred=Number(c.credits)||0; const add=c.weight==='AP'?1.0:(c.weight==='Honors'?0.5:0); uw+=g*cred; w+=(g+add)*cred; cr+=cred })
+    const u=cr? (uw/cr).toFixed(2) : '—', ww=cr? (w/cr).toFixed(2):'—'; document.getElementById('unw').textContent=u; document.getElementById('w').textContent=ww; const ang = cr? ((w/cr)/4)*360 : 0; document.getElementById('ringUnw').style.setProperty('--p', ((uw/cr)/4*360||0)+'deg'); document.getElementById('ringW').style.setProperty('--p', (ang||0)+'deg'); }
+
+  // ======= DECKS =======
+  function renderDecks(){ const d=Store.data(); const rail=document.getElementById('deckRail'); rail.innerHTML=''; d.decks.forEach((dk,idx)=>{ const el=document.createElement('div'); el.className='deck'; el.innerHTML=`<div class='rowh'><b>${dk.title}</b><span class='right muted'>${dk.cards.length} cards</span></div><div class='rowh' style='margin-top:8px'><button class='btn' data-study='${idx}'>Study</button><button class='btn' data-edit='${idx}'>Edit</button><button class='btn' data-del='${idx}'>Delete</button></div>`; rail.appendChild(el) })
+    rail.querySelectorAll('button[data-study]').forEach(b=> b.onclick=()=> studyDeck(Number(b.dataset.study)))
+    rail.querySelectorAll('button[data-edit]').forEach(b=> b.onclick=()=> editDeck(Number(b.dataset.edit)))
+    rail.querySelectorAll('button[data-del]').forEach(b=> b.onclick=()=>{ d.decks.splice(Number(b.dataset.del),1); Store.setData(d); renderDecks() }) }
+  function editDeck(i){ const d=Store.data(); const deck= i!=null? JSON.parse(JSON.stringify(d.decks[i])) : {title:'New Deck', cards:[]} ; const t=prompt('Deck title', deck.title); if(!t) return; deck.title=t; let more=true; while(more){ const q=prompt('Card FRONT (leave blank to stop)'); if(!q) break; const a=prompt('Card BACK'); deck.cards.push({q,a}) }
+    if(i!=null) d.decks[i]=deck; else d.decks.push(deck); Store.setData(d); renderDecks() }
+  function studyDeck(i){ const d=Store.data(); const deck=d.decks[i]; if(!deck||deck.cards.length===0) return alert('Add cards first.'); let idx=0, flipped=false, correct=0; const mini=document.getElementById('mini'); mini.style.display='block'; function show(){ const c=deck.cards[idx]; mini.innerHTML=`<div class='rowh'><b>${deck.title}</b><span class='right muted'>${idx+1}/${deck.cards.length} • Correct ${correct}</span></div><div class='card' style='margin-top:8px'>${flipped?(c.a||'(no answer)'):(c.q||'(no question)')}</div><div class='rowh' style='margin-top:8px'><button class='btn' id='flip'>Flip</button><button class='btn' id='again'>Again</button><button class='btn brand' id='good'>Good</button><button class='btn right' id='exit'>Exit</button></div>`; document.getElementById('flip').onclick=()=>{ flipped=!flipped; show() }; document.getElementById('again').onclick=()=>{ idx=Math.min(idx+1, deck.cards.length-1); flipped=false; show() }; document.getElementById('good').onclick=()=>{ correct++; idx=Math.min(idx+1, deck.cards.length-1); flipped=false; show() }; document.getElementById('exit').onclick=()=> mini.style.display='none' } show() }
+
+  // ======= ESSAY =======
+  function genOutline(){ const p=document.getElementById('esPrompt').value.trim(); const th=document.getElementById('esThesis').value.trim(); const mode=document.getElementById('esMode').value; const tone=document.getElementById('esTone').value; function bullet(a){ return a.map(s=>'• '+s).join('\n') }
+    let out = `Prompt: ${p||'(none)'}\nThesis: ${th||'(draft)'}\nTone: ${tone}\n\n`; if(mode==='five'){ out+='I. Introduction\n'+bullet(['Hook','Context',`Thesis: ${th||'(your claim)'}`])+'\n\nII. Body 1\n'+bullet(['Topic sentence','Evidence','Analysis'])+'\n\nIII. Body 2\n'+bullet(['Topic sentence','Evidence','Synthesis'])+'\n\nIV. Body 3\n'+bullet(['Counterclaim','Rebuttal','So‑what'])+'\n\nV. Conclusion\n'+bullet(['Restate thesis','Key insights','Closing']) } else if(mode==='argument'){ out+='I. Claim\n\nII. Evidence 1→ Explain\n\nIII. Evidence 2→ Explain\n\nIV. Counterclaim → Rebuttal\n\nV. Conclusion' } else if(mode==='compare'){ out+='I. Intro + Thesis\n\nII. Criterion A (Both)\n\nIII. Criterion B (Both)\n\nIV. Criterion C (Both)\n\nV. Evaluation + Conclusion' } else { out+='I. Hook + Setting\n\nII. Rising action\n\nIII. Climax\n\nIV. Reflection\n\nV. Closing image' }
+    document.getElementById('esOut').value = out }
+
+  // ======= SETTINGS (theme/density/focus + backup) =======
+  function settingsInit(){ const s=Store.settings(); document.getElementById('themePick').value=s.theme||'cinematic'; document.getElementById('densityPick').value=s.density||'comfortable'; document.getElementById('focus').checked=!!s.focus }
+  async function exportEnc(){ const pass=prompt('Password for encrypted backup'); if(!pass) return; const enc=new TextEncoder(); const salt=crypto.getRandomValues(new Uint8Array(16)); const iv=crypto.getRandomValues(new Uint8Array(12)); const km=await crypto.subtle.importKey('raw',enc.encode(pass),{name:'PBKDF2'},false,['deriveKey']); const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(Store.export()))); const payload={salt:btoa(String.fromCharCode(...salt)),iv:btoa(String.fromCharCode(...iv)),ct:btoa(String.fromCharCode(...ct))}; const url=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:'application/json'})); const a=Object.assign(document.createElement('a'),{href:url,download:'classaid-encrypted.json'}); a.click(); setTimeout(()=>URL.revokeObjectURL(url),500) }
+  async function importEnc(){ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=async ()=>{ const file=inp.files[0]; if(!file) return; const text=await file.text(); try{ const enc=new TextEncoder(), dec=new TextDecoder(); const p=JSON.parse(text); const salt=Uint8Array.from(atob(p.salt),c=>c.charCodeAt(0)); const iv=Uint8Array.from(atob(p.iv),c=>c.charCodeAt(0)); const ct=Uint8Array.from(atob(p.ct),c=>c.charCodeAt(0)); const pass=prompt('Password to decrypt'); if(!pass) return; const km=await crypto.subtle.importKey('raw',enc.encode(pass),{name:'PBKDF2'},false,['deriveKey']); const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct); Store.import(dec.decode(pt)); alert('Imported. Reloading…'); location.reload() }catch(e){ alert('Failed to decrypt/import: '+e) } }; inp.click() }
+
+  // ======= Boot =======
+  function boot(){ // theme
+    UI.apply(); UI.render(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); settingsInit();
+
+    // topbar theme + switcher
+    document.getElementById('themeSel').onchange = (e)=>{ const s=Store.settings(); s.theme=e.target.value; Store.setSettings(s); UI.apply() }
+    document.getElementById('switchBtn').onclick = ()=>{ const id=prompt('Switch/create profile id'); if(!id) return; Store.switch(id); UI.apply(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); settingsInit() }
+
+    // search (very simple)
+    document.getElementById('q').addEventListener('input', (e)=>{
+      const q=e.target.value.toLowerCase(); if(!q){ renderAssignments(); return }
+      const d=Store.data(); const results=[...d.assignments.filter(a=> (a.title+a.cls).toLowerCase().includes(q)).slice(0,6), ...d.decks.filter(x=>x.title.toLowerCase().includes(q)).slice(0,4)]; const rail=document.getElementById('rail-continue'); rail.innerHTML=''; results.forEach(r=> rail.appendChild(card('Search', r.title||r.cls||'Result', '', ()=>{})))
+    })
+
+    // home actions
+    document.getElementById('quickAddBtn').onclick = addAssign
+
+    // assignments controls
+    document.getElementById('addAssign').onclick = addAssign; document.getElementById('fStatus').onchange=renderAssignments; document.getElementById('fDays').oninput=renderAssignments
+
+    // GPA actions
+    document.getElementById('addClass').onclick=()=>{ const d=Store.data(); d.classes=d.classes||[]; d.classes.push({name:document.getElementById('clsName').value.trim()||'Untitled', grade:document.getElementById('clsGrade').value, credits:parseFloat(document.getElementById('clsCred').value||'1'), weight:document.getElementById('clsWeight').value}); Store.setData(d); renderGPA() }
+
+    // decks
+    document.getElementById('newDeck').onclick=()=> editDeck(null)
+
+    // essay
+    document.getElementById('esGen').onclick=genOutline; document.getElementById('esCopy').onclick=()=>{ const ta=document.getElementById('esOut'); ta.select(); document.execCommand('copy') }
+
+    // settings widgets
+    document.getElementById('themePick').onchange=(e)=>{ const s=Store.settings(); s.theme=e.target.value; Store.setSettings(s); UI.apply() }
+    document.getElementById('densityPick').onchange=(e)=>{ const s=Store.settings(); s.density=e.target.value; Store.setSettings(s); UI.apply() }
+    document.getElementById('focus').onchange=(e)=>{ const s=Store.settings(); s.focus=e.target.checked; Store.setSettings(s); UI.apply() }
+    document.getElementById('exportJson').onclick=()=>{ const url=URL.createObjectURL(new Blob([Store.export()],{type:'application/json'})); const a=Object.assign(document.createElement('a'),{href:url,download:'classaid.json'}); a.click(); setTimeout(()=>URL.revokeObjectURL(url),500) }
+    document.getElementById('importJson').onclick=()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=async()=>{ const t=await inp.files[0].text(); Store.import(t); alert('Imported. Reloading…'); location.reload() }; inp.click() }
+    document.getElementById('exportEnc').onclick=exportEnc; document.getElementById('importEnc').onclick=importEnc
+    document.getElementById('clearAll').onclick=()=>{ if(confirm('Delete ALL data for ALL profiles?')){ localStorage.clear(); location.reload() } }
+  }
+
+  boot()
+  </script>
+</body>
+</html>
