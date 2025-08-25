@@ -1,8 +1,6 @@
 ﻿{
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/nuke", "destination": "/nuke-sw.html" },
-    { "source": "/nuke-sw", "destination": "/nuke-sw.html" },
     { "source": "/pages/:name", "destination": "/pages/:name.html" }
   ],
   "headers": [
