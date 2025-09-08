@@ -87,6 +87,17 @@
     /* Tiny util */
     .rowh{display:flex; align-items:center; gap:10px}
     .right{margin-left:auto}
+
+    /* Audio Notes */
+    .note-card{border:1px solid var(--border); background:var(--card); border-radius:14px; padding:14px; position:relative}
+    .note-card .note-header{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px}
+    .note-card .note-content{color:var(--ink); line-height:1.4; margin-bottom:10px; max-height:120px; overflow:hidden}
+    .note-card .note-footer{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted)}
+    .importance-high{border-left:4px solid var(--danger)}
+    .importance-medium{border-left:4px solid var(--warn)}
+    .importance-low{border-left:4px solid var(--muted)}
+    .recording-indicator{animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1} 50%{opacity:0.5}}
   </style>
 </head>
 <body class="theme-cinematic">
@@ -108,6 +119,7 @@
       <a class="navbtn" href="#/gpa" data-route="#/gpa" title="GPA">📈</a>
       <a class="navbtn" href="#/decks" data-route="#/decks" title="Decks">🃏</a>
       <a class="navbtn" href="#/essay" data-route="#/essay" title="Essay">📝</a>
+      <a class="navbtn" href="#/notes" data-route="#/notes" title="Audio Notes">🎤</a>
       <a class="navbtn" href="#/settings" data-route="#/settings" title="Settings">⚙️</a>
     </aside>
 
@@ -205,6 +217,70 @@
         </div>
       </section>
 
+      <!-- AUDIO NOTES -->
+      <section id="view-notes" class="view">
+        <div class="hero">
+          <div>
+            <h2>Audio Notes 🎤</h2>
+            <p>Record audio notes with AI-powered transcription, automatic categorization, and smart organization.</p>
+          </div>
+          <div class="actions">
+            <button id="startRecording" class="btn brand">🎤 Start Recording</button>
+            <button id="stopRecording" class="btn" style="display:none">⏹️ Stop Recording</button>
+            <select id="noteCategory">
+              <option value="auto">Auto-categorize</option>
+              <option value="lecture">Lecture</option>
+              <option value="assignment">Assignment</option>
+              <option value="reminder">Reminder</option>
+              <option value="idea">Idea</option>
+              <option value="meeting">Meeting</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="rowh">
+            <h3>Current Recording</h3>
+            <span id="recordingStatus" class="chip" style="display:none">Listening...</span>
+          </div>
+          <div class="stat">
+            <div id="liveTranscript" style="min-height:120px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--panel); font-style:italic; color:var(--muted)">
+              Click "Start Recording" to begin transcribing your audio...
+            </div>
+            <div class="rowh" style="margin-top:10px">
+              <button id="saveNote" class="btn brand" disabled>💾 Save Note</button>
+              <button id="clearTranscript" class="btn">🗑️ Clear</button>
+              <span id="importance" class="pill right" style="display:none"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="rowh">
+            <h3>Your Notes</h3>
+            <div class="right rowh">
+              <select id="filterCategory">
+                <option value="all">All Categories</option>
+                <option value="lecture">Lectures</option>
+                <option value="assignment">Assignments</option>
+                <option value="reminder">Reminders</option>
+                <option value="idea">Ideas</option>
+                <option value="meeting">Meetings</option>
+                <option value="other">Other</option>
+              </select>
+              <select id="sortBy">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="importance">By Importance</option>
+                <option value="category">By Category</option>
+              </select>
+            </div>
+          </div>
+          <div id="notesGrid" class="grid cols-3" style="margin-top:12px"></div>
+        </div>
+      </section>
+
       <!-- SETTINGS -->
       <section id="view-settings" class="view">
         <div class="grid cols-2">
@@ -237,11 +313,11 @@
     }
     function write(v){ localStorage.setItem(KEY, JSON.stringify(v)); }
     function ensure(){ const s = read(); if(!s.active) s.active = 'default'; s.profiles = s.profiles || { default: { data: seed(), settings: { theme:'cinematic', density:'comfortable', focus:false } } }; if(!s.profiles[s.active]) s.profiles[s.active] = { data: seed(), settings:{theme:'cinematic', density:'comfortable', focus:false} }; write(s); return s }
-    function seed(){ return { assignments: [], decks: [], classes: [] } }
+    function seed(){ return { assignments: [], decks: [], classes: [], notes: [] } }
     function ctx(){ const s = ensure(); return {root:s, prof:s.profiles[s.active]} }
     return {
       active(){ return ensure().active },
-      switch(id){ const s = ensure(); if(!s.profiles[id]) s.profiles[id] = { data:{assignments:[],decks:[],classes:[]}, settings:{theme:'cinematic',density:'comfortable',focus:false} }; s.active = id; write(s); },
+      switch(id){ const s = ensure(); if(!s.profiles[id]) s.profiles[id] = { data:{assignments:[],decks:[],classes:[],notes:[]}, settings:{theme:'cinematic',density:'comfortable',focus:false} }; s.active = id; write(s); },
       settings(){ return ctx().prof.settings },
       setSettings(v){ const s = ensure(); s.profiles[s.active].settings = v; write(s); },
       data(){ return ctx().prof.data },
@@ -257,7 +333,7 @@
     apply(){ const s = Store.settings(); document.body.className = 'theme-'+(s.theme||'cinematic') + (s.density==='compact'?' density-compact':''); if(s.focus) document.body.classList.add('focus'); document.getElementById('profileLabel').textContent = 'Profile: '+Store.active(); document.getElementById('themeSel').value = s.theme || 'cinematic' },
   };
 
-  window.addEventListener('hashchange', ()=>{ UI.render(); if(location.hash==="#/home") homeRender() })
+  window.addEventListener('hashchange', ()=>{ UI.render(); if(location.hash==="#/home") homeRender(); if(location.hash==="#/notes") renderNotes() })
 
   // ======= HOME =======
   function homeRender(){ const d = Store.data(); const cont = document.getElementById('rail-continue'); cont.innerHTML = '';
@@ -328,13 +404,352 @@
   async function exportEnc(){ const pass=prompt('Password for encrypted backup'); if(!pass) return; const enc=new TextEncoder(); const salt=crypto.getRandomValues(new Uint8Array(16)); const iv=crypto.getRandomValues(new Uint8Array(12)); const km=await crypto.subtle.importKey('raw',enc.encode(pass),{name:'PBKDF2'},false,['deriveKey']); const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(Store.export()))); const payload={salt:btoa(String.fromCharCode(...salt)),iv:btoa(String.fromCharCode(...iv)),ct:btoa(String.fromCharCode(...ct))}; const url=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:'application/json'})); const a=Object.assign(document.createElement('a'),{href:url,download:'classaid-encrypted.json'}); a.click(); setTimeout(()=>URL.revokeObjectURL(url),500) }
   async function importEnc(){ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=async ()=>{ const file=inp.files[0]; if(!file) return; const text=await file.text(); try{ const enc=new TextEncoder(), dec=new TextDecoder(); const p=JSON.parse(text); const salt=Uint8Array.from(atob(p.salt),c=>c.charCodeAt(0)); const iv=Uint8Array.from(atob(p.iv),c=>c.charCodeAt(0)); const ct=Uint8Array.from(atob(p.ct),c=>c.charCodeAt(0)); const pass=prompt('Password to decrypt'); if(!pass) return; const km=await crypto.subtle.importKey('raw',enc.encode(pass),{name:'PBKDF2'},false,['deriveKey']); const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct); Store.import(dec.decode(pt)); alert('Imported. Reloading…'); location.reload() }catch(e){ alert('Failed to decrypt/import: '+e) } }; inp.click() }
 
+  // ======= AUDIO NOTES =======
+  let recognition = null;
+  let isRecording = false;
+  let currentTranscript = '';
+
+  function initSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
+      return false;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      isRecording = true;
+      document.getElementById('recordingStatus').style.display = 'inline-block';
+      document.getElementById('recordingStatus').classList.add('recording-indicator');
+      document.getElementById('startRecording').style.display = 'none';
+      document.getElementById('stopRecording').style.display = 'inline-flex';
+    };
+
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = currentTranscript;
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      currentTranscript = finalTranscript;
+      const displayText = finalTranscript + (interimTranscript ? `<span style="color:var(--muted)">${interimTranscript}</span>` : '');
+      document.getElementById('liveTranscript').innerHTML = displayText || 'Listening...';
+      
+      // Enable save button if we have content
+      document.getElementById('saveNote').disabled = !finalTranscript.trim();
+      
+      // Update importance indicator
+      updateImportanceIndicator(finalTranscript + interimTranscript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      stopRecording();
+    };
+
+    recognition.onend = () => {
+      if (isRecording) {
+        // Restart if still recording (for continuous listening)
+        try {
+          recognition.start();
+        } catch (e) {
+          stopRecording();
+        }
+      }
+    };
+
+    return true;
+  }
+
+  function startRecording() {
+    if (!recognition && !initSpeechRecognition()) return;
+    
+    currentTranscript = '';
+    document.getElementById('liveTranscript').innerHTML = 'Starting...';
+    document.getElementById('saveNote').disabled = true;
+    
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Error starting recognition:', e);
+    }
+  }
+
+  function stopRecording() {
+    isRecording = false;
+    if (recognition) {
+      recognition.stop();
+    }
+    
+    document.getElementById('recordingStatus').style.display = 'none';
+    document.getElementById('recordingStatus').classList.remove('recording-indicator');
+    document.getElementById('startRecording').style.display = 'inline-flex';
+    document.getElementById('stopRecording').style.display = 'none';
+  }
+
+  function categorizeNote(text) {
+    const lowerText = text.toLowerCase();
+    
+    // Keywords for different categories
+    const categoryKeywords = {
+      assignment: ['assignment', 'homework', 'due', 'submit', 'deadline', 'project', 'essay', 'paper', 'exam', 'test', 'quiz'],
+      lecture: ['lecture', 'professor', 'class', 'lesson', 'chapter', 'notes', 'explained', 'discussed', 'covered'],
+      reminder: ['remember', 'remind', 'don\'t forget', 'need to', 'have to', 'should', 'must', 'later', 'tomorrow'],
+      meeting: ['meeting', 'discuss', 'talk', 'conference', 'presentation', 'group', 'team', 'collaborate'],
+      idea: ['idea', 'think', 'concept', 'innovation', 'creative', 'brainstorm', 'solution', 'approach']
+    };
+
+    let maxScore = 0;
+    let bestCategory = 'other';
+
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      const score = keywords.reduce((sum, keyword) => {
+        const matches = (lowerText.match(new RegExp(keyword, 'g')) || []).length;
+        return sum + matches;
+      }, 0);
+
+      if (score > maxScore) {
+        maxScore = score;
+        bestCategory = category;
+      }
+    }
+
+    return bestCategory;
+  }
+
+  function calculateImportance(text) {
+    const lowerText = text.toLowerCase();
+    
+    // High importance keywords
+    const highKeywords = ['urgent', 'important', 'critical', 'asap', 'deadline', 'emergency', 'priority', 'exam', 'test'];
+    const mediumKeywords = ['should', 'need', 'remember', 'due', 'assignment', 'meeting', 'tomorrow'];
+    const lowKeywords = ['maybe', 'later', 'sometime', 'eventually', 'idea', 'think'];
+
+    let score = 0;
+    
+    // Count keyword matches
+    highKeywords.forEach(keyword => {
+      score += (lowerText.match(new RegExp(keyword, 'g')) || []).length * 3;
+    });
+    
+    mediumKeywords.forEach(keyword => {
+      score += (lowerText.match(new RegExp(keyword, 'g')) || []).length * 2;
+    });
+    
+    lowKeywords.forEach(keyword => {
+      score += (lowerText.match(new RegExp(keyword, 'g')) || []).length * 1;
+    });
+
+    // Adjust for length (longer notes might be more important)
+    if (text.length > 200) score += 1;
+    if (text.length > 500) score += 1;
+
+    // Return importance level
+    if (score >= 5) return 'high';
+    if (score >= 2) return 'medium';
+    return 'low';
+  }
+
+  function updateImportanceIndicator(text) {
+    const importance = calculateImportance(text);
+    const indicator = document.getElementById('importance');
+    
+    if (text.trim()) {
+      indicator.style.display = 'inline-block';
+      indicator.textContent = `Importance: ${importance}`;
+      indicator.className = `pill right importance-${importance}`;
+    } else {
+      indicator.style.display = 'none';
+    }
+  }
+
+  function saveNote() {
+    const text = currentTranscript.trim();
+    if (!text) return;
+
+    const categorySelect = document.getElementById('noteCategory');
+    let category = categorySelect.value;
+    
+    // Auto-categorize if selected
+    if (category === 'auto') {
+      category = categorizeNote(text);
+    }
+
+    const importance = calculateImportance(text);
+    const timestamp = new Date().toISOString();
+
+    const note = {
+      id: Date.now(),
+      text,
+      category,
+      importance,
+      timestamp,
+      created: new Date().toLocaleString()
+    };
+
+    const data = Store.data();
+    data.notes = data.notes || [];
+    data.notes.push(note);
+    Store.setData(data);
+
+    // Clear the current recording
+    currentTranscript = '';
+    document.getElementById('liveTranscript').innerHTML = 'Note saved! Click "Start Recording" to record another...';
+    document.getElementById('saveNote').disabled = true;
+    document.getElementById('importance').style.display = 'none';
+
+    // Refresh notes display
+    renderNotes();
+    
+    alert('Note saved successfully!');
+  }
+
+  function clearTranscript() {
+    currentTranscript = '';
+    document.getElementById('liveTranscript').innerHTML = 'Click "Start Recording" to begin transcribing your audio...';
+    document.getElementById('saveNote').disabled = true;
+    document.getElementById('importance').style.display = 'none';
+  }
+
+  // Test function to simulate note creation (for demo purposes)
+  function createTestNote(text) {
+    currentTranscript = text;
+    document.getElementById('liveTranscript').innerHTML = text;
+    document.getElementById('saveNote').disabled = false;
+    updateImportanceIndicator(text);
+  }
+
+  function renderNotes() {
+    const data = Store.data();
+    const notes = data.notes || [];
+    const grid = document.getElementById('notesGrid');
+    
+    const categoryFilter = document.getElementById('filterCategory').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    // Filter notes
+    let filteredNotes = notes.slice();
+    if (categoryFilter !== 'all') {
+      filteredNotes = filteredNotes.filter(note => note.category === categoryFilter);
+    }
+
+    // Sort notes
+    filteredNotes.sort((a, b) => {
+      switch (sortBy) {
+        case 'date-desc':
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        case 'date-asc':
+          return new Date(a.timestamp) - new Date(b.timestamp);
+        case 'importance':
+          const importanceOrder = { high: 3, medium: 2, low: 1 };
+          return importanceOrder[b.importance] - importanceOrder[a.importance];
+        case 'category':
+          return a.category.localeCompare(b.category);
+        default:
+          return new Date(b.timestamp) - new Date(a.timestamp);
+      }
+    });
+
+    grid.innerHTML = '';
+
+    if (filteredNotes.length === 0) {
+      grid.innerHTML = '<div class="muted">No notes found. Start recording to create your first note!</div>';
+      return;
+    }
+
+    filteredNotes.forEach((note, index) => {
+      const noteEl = document.createElement('div');
+      noteEl.className = `note-card importance-${note.importance}`;
+      
+      const preview = note.text.length > 150 ? note.text.substring(0, 150) + '...' : note.text;
+      
+      noteEl.innerHTML = `
+        <div class="note-header">
+          <span class="chip">${note.category}</span>
+          <span class="pill importance-${note.importance}">${note.importance}</span>
+        </div>
+        <div class="note-content">${preview}</div>
+        <div class="note-footer">
+          <span>${note.created}</span>
+          <div class="rowh">
+            <button class="btn" data-view="${note.id}">View</button>
+            <button class="btn" data-edit="${note.id}">Edit</button>
+            <button class="btn" data-delete="${note.id}">Delete</button>
+          </div>
+        </div>
+      `;
+      
+      grid.appendChild(noteEl);
+    });
+
+    // Add event listeners
+    grid.querySelectorAll('button[data-view]').forEach(btn => {
+      btn.onclick = () => viewNote(Number(btn.dataset.view));
+    });
+    
+    grid.querySelectorAll('button[data-edit]').forEach(btn => {
+      btn.onclick = () => editNote(Number(btn.dataset.edit));
+    });
+    
+    grid.querySelectorAll('button[data-delete]').forEach(btn => {
+      btn.onclick = () => deleteNote(Number(btn.dataset.delete));
+    });
+  }
+
+  function viewNote(noteId) {
+    const data = Store.data();
+    const note = data.notes.find(n => n.id === noteId);
+    if (!note) return;
+
+    alert(`${note.category.toUpperCase()} - ${note.importance.toUpperCase()} IMPORTANCE\n\nCreated: ${note.created}\n\n${note.text}`);
+  }
+
+  function editNote(noteId) {
+    const data = Store.data();
+    const noteIndex = data.notes.findIndex(n => n.id === noteId);
+    if (noteIndex === -1) return;
+
+    const note = data.notes[noteIndex];
+    const newText = prompt('Edit note:', note.text);
+    if (newText === null) return;
+
+    // Recalculate category and importance
+    note.text = newText.trim();
+    note.category = categorizeNote(note.text);
+    note.importance = calculateImportance(note.text);
+    note.modified = new Date().toLocaleString();
+
+    Store.setData(data);
+    renderNotes();
+  }
+
+  function deleteNote(noteId) {
+    if (!confirm('Delete this note?')) return;
+
+    const data = Store.data();
+    data.notes = data.notes.filter(n => n.id !== noteId);
+    Store.setData(data);
+    renderNotes();
+  }
+
   // ======= Boot =======
   function boot(){ // theme
-    UI.apply(); UI.render(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); settingsInit();
+    UI.apply(); UI.render(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); renderNotes(); settingsInit();
 
     // topbar theme + switcher
     document.getElementById('themeSel').onchange = (e)=>{ const s=Store.settings(); s.theme=e.target.value; Store.setSettings(s); UI.apply() }
-    document.getElementById('switchBtn').onclick = ()=>{ const id=prompt('Switch/create profile id'); if(!id) return; Store.switch(id); UI.apply(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); settingsInit() }
+    document.getElementById('switchBtn').onclick = ()=>{ const id=prompt('Switch/create profile id'); if(!id) return; Store.switch(id); UI.apply(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); renderNotes(); settingsInit() }
 
     // search (very simple)
     document.getElementById('q').addEventListener('input', (e)=>{
@@ -365,6 +780,14 @@
     document.getElementById('importJson').onclick=()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=async()=>{ const t=await inp.files[0].text(); Store.import(t); alert('Imported. Reloading…'); location.reload() }; inp.click() }
     document.getElementById('exportEnc').onclick=exportEnc; document.getElementById('importEnc').onclick=importEnc
     document.getElementById('clearAll').onclick=()=>{ if(confirm('Delete ALL data for ALL profiles?')){ localStorage.clear(); location.reload() } }
+
+    // audio notes
+    document.getElementById('startRecording').onclick = startRecording;
+    document.getElementById('stopRecording').onclick = stopRecording;
+    document.getElementById('saveNote').onclick = saveNote;
+    document.getElementById('clearTranscript').onclick = clearTranscript;
+    document.getElementById('filterCategory').onchange = renderNotes;
+    document.getElementById('sortBy').onchange = renderNotes;
   }
 
   boot()
