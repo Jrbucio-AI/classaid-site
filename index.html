@@ -98,6 +98,59 @@
     .importance-low{border-left:4px solid var(--muted)}
     .recording-indicator{animation:pulse 1.5s infinite}
     @keyframes pulse{0%,100%{opacity:1} 50%{opacity:0.5}}
+
+    /* Enhanced Todo Assignments */
+    .modal{position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center}
+    .modal-content{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px; width:90%; max-width:600px; max-height:90vh; overflow-y:auto}
+    .form-group{margin-bottom:16px}
+    .form-row{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+    .form-group label{display:block; margin-bottom:6px; font-weight:500}
+    .form-actions{display:flex; gap:12px; justify-content:flex-end; margin-top:24px}
+    textarea{min-height:80px; resize:vertical; font-family:inherit}
+    
+    /* Priority indicators */
+    .priority-high{border-left:4px solid var(--danger); background:linear-gradient(90deg, rgba(255,111,145,0.1), transparent)}
+    .priority-medium{border-left:4px solid var(--warn); background:linear-gradient(90deg, rgba(255,191,60,0.1), transparent)}
+    .priority-low{border-left:4px solid var(--muted); background:linear-gradient(90deg, rgba(165,212,191,0.1), transparent)}
+    
+    /* Type badges */
+    .type-homework{background:#1a2332; color:#5c9cec; border:1px solid #2a3b52}
+    .type-project{background:#2d1a32; color:#c57cec; border:1px solid #4a2b52}
+    .type-exam{background:#321a1a; color:#ec5c5c; border:1px solid #522b2b}
+    .type-quiz{background:#32261a; color:#ecab5c; border:1px solid #52422b}
+    .type-study{background:#1a3226; color:#5cec93; border:1px solid #2b5240}
+    .type-other{background:#26262a; color:#9c9cec; border:1px solid #404045}
+    
+    /* Progress bars */
+    .progress-bar{width:100%; height:6px; background:var(--border); border-radius:3px; overflow:hidden}
+    .progress-fill{height:100%; background:var(--brand); transition:width 0.3s ease}
+    
+    /* Enhanced assignment cards */
+    .assign-card{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:flex-start; border:1px solid var(--border); background:var(--card); border-radius:14px; padding:14px; position:relative}
+    .assign-card .priority-indicator{width:8px; height:60px; border-radius:4px; align-self:stretch}
+    .assign-card .main-content{flex:1}
+    .assign-card .task-header{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px}
+    .assign-card .task-title{font-weight:700; font-size:16px; margin-bottom:4px}
+    .assign-card .task-meta{display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap}
+    .assign-card .task-meta .chip{padding:2px 8px; border-radius:8px; font-size:12px; font-weight:500}
+    .assign-card .task-progress{margin-top:8px}
+    .assign-card .task-actions{display:flex; flex-direction:column; gap:8px; align-items:flex-end}
+    .assign-card .due-time{font-weight:700; font-size:14px; text-align:right}
+    .assign-card .action-btns{display:flex; gap:6px; flex-wrap:wrap}
+    
+    /* Study timer */
+    .study-timer{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:16px}
+    .timer-display{font-size:24px; font-weight:700; text-align:center; margin-bottom:12px; color:var(--brand)}
+    .timer-controls{display:flex; gap:10px; justify-content:center}
+    
+    /* Mobile responsive */
+    @media(max-width:768px){
+      .form-row{grid-template-columns:1fr}
+      .assign-card{grid-template-columns:1fr; gap:12px}
+      .assign-card .priority-indicator{width:100%; height:4px}
+      .assign-card .task-actions{flex-direction:row; justify-content:space-between; align-items:center}
+      .assign-card .action-btns{order:2}
+    }
   </style>
 </head>
 <body class="theme-cinematic">
@@ -157,14 +210,81 @@
       <!-- ASSIGNMENTS -->
       <section id="view-assignments" class="view">
         <div class="rowh">
-          <h2 style="margin:0">Assignments</h2>
+          <h2 style="margin:0">Todo & Assignments</h2>
           <div class="right rowh">
-            <select id="fStatus"><option value="any">Any</option><option value="open">Open</option><option value="done">Done</option></select>
+            <select id="fPriority"><option value="any">Any Priority</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+            <select id="fType"><option value="any">Any Type</option><option value="homework">Homework</option><option value="project">Project</option><option value="exam">Exam</option><option value="quiz">Quiz</option><option value="study">Study</option><option value="other">Other</option></select>
+            <select id="fStatus"><option value="any">Any Status</option><option value="open">Open</option><option value="done">Done</option></select>
             <input id="fDays" type="number" min="0" placeholder="Due ≤ days" style="width:120px">
-            <button id="addAssign" class="btn brand">+ New</button>
+            <button id="addAssign" class="btn brand">+ New Task</button>
           </div>
         </div>
         <div id="assignGrid" class="grid cols-3" style="margin-top:12px"></div>
+        
+        <!-- Assignment Form Modal -->
+        <div id="assignModal" class="modal" style="display:none">
+          <div class="modal-content">
+            <div class="rowh">
+              <h3 id="modalTitle">Add New Task</h3>
+              <button id="closeModal" class="btn ghost">✕</button>
+            </div>
+            <form id="assignForm">
+              <div class="form-group">
+                <label>Title *</label>
+                <input id="taskTitle" name="title" type="text" required placeholder="Enter task title">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Subject/Class</label>
+                  <input id="taskClass" name="class" type="text" placeholder="e.g., Mathematics, History">
+                </div>
+                <div class="form-group">
+                  <label>Type</label>
+                  <select id="taskType" name="type">
+                    <option value="homework">Homework</option>
+                    <option value="project">Project</option>
+                    <option value="exam">Exam</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="study">Study Session</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Priority</label>
+                  <select id="taskPriority" name="priority">
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Due Date & Time</label>
+                  <input id="taskDue" name="due" type="datetime-local" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea id="taskDesc" name="description" placeholder="Additional details, notes, or requirements"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Estimated Time (hours)</label>
+                  <input id="taskEstTime" name="estimatedTime" type="number" min="0.25" step="0.25" placeholder="2.5">
+                </div>
+                <div class="form-group">
+                  <label>Progress (%)</label>
+                  <input id="taskProgress" name="progress" type="number" min="0" max="100" value="0">
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="button" id="cancelForm" class="btn ghost">Cancel</button>
+                <button type="submit" class="btn brand">Save Task</button>
+              </div>
+            </form>
+          </div>
+        </div>
       </section>
 
       <!-- PLANNER (simple weekly strip) -->
@@ -350,30 +470,287 @@
   function niceDate(iso){ const d = new Date(iso); return d.toLocaleDateString()+ ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) }
   function until(iso){ const ms = new Date(iso)-Date.now(); if(ms<0) return 'overdue'; const h = Math.round(ms/36e5); if(h<24) return h+'h'; const d=Math.round(h/24); return d+'d' }
 
-  // ======= ASSIGNMENTS =======
-  function renderAssignments(){ const st = Store.data(); const grid = document.getElementById('assignGrid');
-    const status = document.getElementById('fStatus').value; const days = Number(document.getElementById('fDays').value||'0');
-    let list = st.assignments.slice(); if(status!=='any') list = list.filter(a=> a.status===status); if(days>0){ const cut = Date.now()+days*864e5; list = list.filter(a=> new Date(a.due).getTime() <= cut) }
-    list.sort((a,b)=> new Date(a.due)-new Date(b.due)); grid.innerHTML='';
-    if(list.length===0){ grid.innerHTML = '<div class="muted">No assignments match your filter.</div>'; return }
+  // ======= ENHANCED ASSIGNMENTS =======
+  function renderAssignments(){ 
+    const st = Store.data(); 
+    const grid = document.getElementById('assignGrid');
+    const status = document.getElementById('fStatus').value; 
+    const days = Number(document.getElementById('fDays').value||'0');
+    const priority = document.getElementById('fPriority').value;
+    const type = document.getElementById('fType').value;
+    
+    let list = st.assignments.slice(); 
+    if(status!=='any') list = list.filter(a=> a.status===status); 
+    if(priority!=='any') list = list.filter(a=> (a.priority||'medium')===priority);
+    if(type!=='any') list = list.filter(a=> (a.type||'homework')===type);
+    if(days>0){ const cut = Date.now()+days*864e5; list = list.filter(a=> new Date(a.due).getTime() <= cut) }
+    
+    // Sort by priority then due date
+    const priorityOrder = {high: 3, medium: 2, low: 1};
+    list.sort((a,b)=> {
+      const aPriority = priorityOrder[a.priority||'medium'];
+      const bPriority = priorityOrder[b.priority||'medium'];
+      if(aPriority !== bPriority) return bPriority - aPriority;
+      return new Date(a.due)-new Date(b.due);
+    });
+    
+    grid.innerHTML='';
+    if(list.length===0){ grid.innerHTML = '<div class="muted">No tasks match your filter.</div>'; return }
+    
     list.forEach((a,i)=>{
-      const el = document.createElement('div'); el.className='assign-card'; el.innerHTML = `
-        <div class='thumb'></div>
-        <div>
-          <div class='rowh'><div style='font-weight:700'>${a.title}</div><span class='chip right'>${a.cls||'General'}</span></div>
-          <div class='muted'>${a.status==='done'?'✓ Completed':'Open'}</div>
+      const priority = a.priority || 'medium';
+      const type = a.type || 'homework';
+      const progress = a.progress || 0;
+      const timeSpent = a.timeSpent || 0;
+      const estimatedTime = a.estimatedTime || 0;
+      
+      const el = document.createElement('div'); 
+      el.className = `assign-card priority-${priority}`;
+      
+      el.innerHTML = `
+        <div class='priority-indicator ${priority === 'high' ? 'priority-high' : priority === 'medium' ? 'priority-medium' : 'priority-low'}'></div>
+        <div class='main-content'>
+          <div class='task-header'>
+            <div class='task-title'>${a.title}</div>
+          </div>
+          <div class='task-meta'>
+            <span class='chip ${priority === 'high' ? 'priority-high' : priority === 'medium' ? 'priority-medium' : 'priority-low'}'>${priority.toUpperCase()}</span>
+            <span class='chip type-${type}'>${type.toUpperCase()}</span>
+            <span class='chip'>${a.cls||'General'}</span>
+            ${a.description ? `<span class='chip' title='${a.description}'>📝 Note</span>` : ''}
+          </div>
+          <div class='muted'>${a.status==='done'?'✓ Completed':`${progress}% Complete`}</div>
+          ${progress > 0 ? `
+            <div class='task-progress'>
+              <div class='progress-bar'>
+                <div class='progress-fill' style='width:${progress}%'></div>
+              </div>
+            </div>
+          ` : ''}
+          ${estimatedTime > 0 || timeSpent > 0 ? `
+            <div class='muted' style='margin-top:6px'>
+              ${timeSpent > 0 ? `⏱️ ${timeSpent}h spent` : ''}
+              ${estimatedTime > 0 ? ` / ${estimatedTime}h estimated` : ''}
+            </div>
+          ` : ''}
         </div>
-        <div class='rowh right'><div class='due'>${until(a.due)}</div><button class='btn' data-ed='${i}'>Edit</button><button class='btn' data-done='${i}'>${a.status==='done'?'Reopen':'Done'}</button><button class='btn' data-del='${i}'>Delete</button></div>`;
+        <div class='task-actions'>
+          <div class='due-time'>${until(a.due)}</div>
+          <div class='action-btns'>
+            <button class='btn' data-ed='${i}' title='Edit'>✏️</button>
+            <button class='btn' data-timer='${i}' title='Start Study Timer'>⏱️</button>
+            <button class='btn ${a.status==='done'?'':'brand'}' data-done='${i}'>${a.status==='done'?'↩️':'✓'}</button>
+            <button class='btn' data-del='${i}' title='Delete'>🗑️</button>
+          </div>
+        </div>`;
       grid.appendChild(el)
     })
+    
     grid.querySelectorAll('button[data-ed]').forEach(b=> b.onclick = ()=> editAssign(Number(b.dataset.ed)))
     grid.querySelectorAll('button[data-done]').forEach(b=> b.onclick = ()=> toggleAssign(Number(b.dataset.done)))
     grid.querySelectorAll('button[data-del]').forEach(b=> b.onclick = ()=> delAssign(Number(b.dataset.del)))
+    grid.querySelectorAll('button[data-timer]').forEach(b=> b.onclick = ()=> startStudyTimer(Number(b.dataset.timer)))
   }
-  function addAssign(){ const title = prompt('Title?'); if(!title) return; const cls = prompt('Class? (optional)')||''; const due = prompt('Due (YYYY-MM-DD HH:MM)'); const d = Store.data(); const iso = due? new Date(due.replace(' ','T')).toISOString() : new Date(Date.now()+864e5).toISOString(); d.assignments.push({title, cls, due:iso, status:'open'}); Store.setData(d); renderAssignments(); homeRender() }
-  function editAssign(i){ const d = Store.data(); const a = d.assignments[i]; const t = prompt('Title', a.title); if(!t) return; const c = prompt('Class', a.cls||'')||''; const due = prompt('Due (YYYY-MM-DD HH:MM)', a.due.slice(0,16).replace('T',' ')); if(due){ a.due = new Date(due.replace(' ','T')).toISOString() } a.title=t; a.cls=c; Store.setData(d); renderAssignments(); homeRender() }
-  function toggleAssign(i){ const d=Store.data(); d.assignments[i].status = d.assignments[i].status==='done'?'open':'done'; Store.setData(d); renderAssignments(); homeRender() }
-  function delAssign(i){ const d=Store.data(); d.assignments.splice(i,1); Store.setData(d); renderAssignments(); homeRender() }
+
+  let currentEditIndex = null;
+  
+  function addAssign(){ 
+    currentEditIndex = null;
+    document.getElementById('modalTitle').textContent = 'Add New Task';
+    document.getElementById('assignForm').reset();
+    
+    // Set default due date to tomorrow at 11:59 PM
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(23, 59);
+    document.getElementById('taskDue').value = tomorrow.toISOString().slice(0, 16);
+    
+    document.getElementById('assignModal').style.display = 'flex';
+    document.getElementById('taskTitle').focus();
+  }
+  
+  function editAssign(i){ 
+    const d = Store.data(); 
+    const a = d.assignments[i];
+    currentEditIndex = i;
+    
+    document.getElementById('modalTitle').textContent = 'Edit Task';
+    document.getElementById('taskTitle').value = a.title;
+    document.getElementById('taskClass').value = a.cls || '';
+    document.getElementById('taskType').value = a.type || 'homework';
+    document.getElementById('taskPriority').value = a.priority || 'medium';
+    document.getElementById('taskDue').value = a.due.slice(0, 16);
+    document.getElementById('taskDesc').value = a.description || '';
+    document.getElementById('taskEstTime').value = a.estimatedTime || '';
+    document.getElementById('taskProgress').value = a.progress || 0;
+    
+    document.getElementById('assignModal').style.display = 'flex';
+    document.getElementById('taskTitle').focus();
+  }
+
+  function saveAssignment(formData) {
+    const d = Store.data();
+    const assignment = {
+      title: formData.get('title'),
+      cls: formData.get('class'),
+      type: formData.get('type'),
+      priority: formData.get('priority'),
+      due: new Date(formData.get('due')).toISOString(),
+      description: formData.get('description'),
+      estimatedTime: parseFloat(formData.get('estimatedTime')) || 0,
+      progress: parseInt(formData.get('progress')) || 0,
+      status: 'open',
+      timeSpent: 0,
+      created: new Date().toISOString()
+    };
+    
+    if (currentEditIndex !== null) {
+      // Preserve existing timeSpent and status when editing
+      assignment.timeSpent = d.assignments[currentEditIndex].timeSpent || 0;
+      assignment.status = d.assignments[currentEditIndex].status || 'open';
+      assignment.created = d.assignments[currentEditIndex].created || assignment.created;
+      d.assignments[currentEditIndex] = assignment;
+    } else {
+      d.assignments.push(assignment);
+    }
+    
+    Store.setData(d); 
+    renderAssignments(); 
+    homeRender();
+    closeModal();
+  }
+  
+  function closeModal() {
+    document.getElementById('assignModal').style.display = 'none';
+    currentEditIndex = null;
+  }
+  
+  function toggleAssign(i){ 
+    const d=Store.data(); 
+    const assignment = d.assignments[i];
+    
+    if(assignment.status === 'done') {
+      assignment.status = 'open';
+      assignment.progress = Math.max(0, assignment.progress - 10); // Reduce progress when reopening
+    } else {
+      assignment.status = 'done';
+      assignment.progress = 100;
+      assignment.completedAt = new Date().toISOString();
+    }
+    
+    Store.setData(d); 
+    renderAssignments(); 
+    homeRender();
+  }
+  
+  function delAssign(i){ 
+    if(!confirm('Delete this task? This action cannot be undone.')) return;
+    const d=Store.data(); 
+    d.assignments.splice(i,1); 
+    Store.setData(d); 
+    renderAssignments(); 
+    homeRender();
+  }
+
+  // Study Timer functionality
+  let studyTimer = null;
+  let studyStartTime = null;
+  let studyTaskIndex = null;
+  
+  function startStudyTimer(taskIndex) {
+    if(studyTimer) {
+      stopStudyTimer();
+    }
+    
+    studyTaskIndex = taskIndex;
+    studyStartTime = Date.now();
+    
+    // Show timer UI
+    showStudyTimerUI();
+    
+    // Start timer (update every second)
+    studyTimer = setInterval(() => {
+      updateStudyTimerDisplay();
+    }, 1000);
+  }
+  
+  function stopStudyTimer() {
+    if(!studyTimer) return;
+    
+    clearInterval(studyTimer);
+    
+    if(studyTaskIndex !== null && studyStartTime) {
+      const timeSpent = (Date.now() - studyStartTime) / (1000 * 60 * 60); // Convert to hours
+      const d = Store.data();
+      
+      if(d.assignments[studyTaskIndex]) {
+        d.assignments[studyTaskIndex].timeSpent = (d.assignments[studyTaskIndex].timeSpent || 0) + timeSpent;
+        Store.setData(d);
+        renderAssignments();
+      }
+    }
+    
+    hideStudyTimerUI();
+    studyTimer = null;
+    studyStartTime = null;
+    studyTaskIndex = null;
+  }
+  
+  function showStudyTimerUI() {
+    let timerDiv = document.getElementById('studyTimerUI');
+    if(!timerDiv) {
+      timerDiv = document.createElement('div');
+      timerDiv.id = 'studyTimerUI';
+      timerDiv.className = 'study-timer';
+      document.getElementById('view-assignments').appendChild(timerDiv);
+    }
+    
+    const d = Store.data();
+    const task = d.assignments[studyTaskIndex];
+    
+    timerDiv.innerHTML = `
+      <div style="text-align:center; margin-bottom:12px;">
+        <div><strong>Studying: ${task.title}</strong></div>
+        <div class="muted">${task.cls || 'General'}</div>
+      </div>
+      <div class="timer-display" id="timerDisplay">00:00:00</div>
+      <div class="timer-controls">
+        <button class="btn" onclick="stopStudyTimer()">Stop & Save Time</button>
+        <button class="btn ghost" onclick="pauseStudyTimer()">Pause</button>
+      </div>
+    `;
+    
+    timerDiv.style.display = 'block';
+  }
+  
+  function hideStudyTimerUI() {
+    const timerDiv = document.getElementById('studyTimerUI');
+    if(timerDiv) {
+      timerDiv.style.display = 'none';
+    }
+  }
+  
+  function updateStudyTimerDisplay() {
+    if(!studyStartTime) return;
+    
+    const elapsed = Date.now() - studyStartTime;
+    const hours = Math.floor(elapsed / (1000 * 60 * 60));
+    const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+    
+    const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    const timerDisplay = document.getElementById('timerDisplay');
+    if(timerDisplay) {
+      timerDisplay.textContent = display;
+    }
+  }
+  
+  function pauseStudyTimer() {
+    if(studyTimer) {
+      stopStudyTimer();
+    }
+  }
 
   // ======= PLANNER =======
   function renderPlanner(){ const d = Store.data(); const rail = document.getElementById('planStrip'); rail.innerHTML=''; const now = new Date(); const start = new Date(now); start.setDate(now.getDate()-3); start.setHours(0,0,0,0); const week = []; for(let i=0;i<10;i++){ const x = new Date(start); x.setDate(start.getDate()+i); week.push(x) }
@@ -761,7 +1138,25 @@
     document.getElementById('quickAddBtn').onclick = addAssign
 
     // assignments controls
-    document.getElementById('addAssign').onclick = addAssign; document.getElementById('fStatus').onchange=renderAssignments; document.getElementById('fDays').oninput=renderAssignments
+    document.getElementById('addAssign').onclick = addAssign; 
+    document.getElementById('fStatus').onchange=renderAssignments; 
+    document.getElementById('fDays').oninput=renderAssignments;
+    document.getElementById('fPriority').onchange=renderAssignments;
+    document.getElementById('fType').onchange=renderAssignments;
+    
+    // assignment modal controls
+    document.getElementById('closeModal').onclick = closeModal;
+    document.getElementById('cancelForm').onclick = closeModal;
+    document.getElementById('assignForm').onsubmit = (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      saveAssignment(formData);
+    };
+    
+    // Close modal when clicking outside
+    document.getElementById('assignModal').onclick = (e) => {
+      if(e.target.id === 'assignModal') closeModal();
+    };
 
     // GPA actions
     document.getElementById('addClass').onclick=()=>{ const d=Store.data(); d.classes=d.classes||[]; d.classes.push({name:document.getElementById('clsName').value.trim()||'Untitled', grade:document.getElementById('clsGrade').value, credits:parseFloat(document.getElementById('clsCred').value||'1'), weight:document.getElementById('clsWeight').value}); Store.setData(d); renderGPA() }
