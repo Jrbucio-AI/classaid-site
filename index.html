@@ -10,25 +10,34 @@
     :root{
       --bg:#0b0f0d; --ink:#e7f4ee; --muted:#a5d4bf; --card:#121a16; --panel:#0f1612; --border:rgba(255,255,255,.08);
       --brand:#22e392; --ring:rgba(34,227,146,.28); --shadow:0 18px 40px rgba(0,0,0,.45); --radius:18px;
-      --accent2:#8bf7ca; --warn:#ffbf3c; --danger:#ff6f91;
+      --accent2:#8bf7ca; --warn:#ffbf3c; --danger:#ff6f91; --success:#4ade80; --info:#3b82f6;
+      --glass:rgba(255,255,255,.05); --blur:blur(16px); --transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Light theme for accessibility */
+    .theme-light{
+      --bg:#ffffff; --ink:#1f2937; --muted:#6b7280; --card:#f9fafb; --panel:#f3f4f6; --border:rgba(0,0,0,.1);
+      --brand:#059669; --ring:rgba(5,150,105,.3); --shadow:0 18px 40px rgba(0,0,0,.1);
     }
     /* Themes */
     .theme-cinematic{ --brand:#e50914; --accent2:#ffb3b7; --panel:#0d0d0f; --card:#141417; --ring:rgba(229,9,20,.25) }
     .theme-minimal{ --brand:#ff0033; --panel:#0e0e0f; --card:#151516; --ring:rgba(255,0,51,.25) }
     .theme-community{ --brand:#ff4500; --panel:#0e140f; --card:#141b15; --ring:rgba(255,69,0,.25) }
 
-    *{box-sizing:border-box}
+    *{box-sizing:border-box; transition:var(--transition)}
     html,body{height:100%}
     body{margin:0;background:
       radial-gradient(1200px 700px at 10% -20%,#163223 0%,#0f1b14 50%,transparent 100%),
       linear-gradient(180deg,var(--bg),var(--bg));
-      color:var(--ink); font:15px/1.5 ui-sans-serif,system-ui,Segoe UI,Inter,Roboto,Arial}
+      color:var(--ink); font:15px/1.5 ui-sans-serif,system-ui,Segoe UI,Inter,Roboto,Arial; overflow-x:hidden}
     a{color:var(--ink); text-decoration:none}
 
     /* Layout */
     .app{display:grid; grid-template-columns: 78px 1fr; grid-template-rows: 64px 1fr; height:100vh}
-    .topbar{grid-column:1/3; display:flex; align-items:center; gap:12px; padding:12px 16px; backdrop-filter: blur(8px);
+    @media(max-width:768px){.app{grid-template-columns: 1fr; grid-template-rows: 64px auto 1fr} .sidebar{grid-row:2; grid-column:1; flex-direction:row; height:auto; overflow-x:auto; padding:8px}}
+    .topbar{grid-column:1/3; display:flex; align-items:center; gap:12px; padding:12px 16px; backdrop-filter: var(--blur);
       background: linear-gradient(180deg, rgba(12,18,15,.9), rgba(12,18,15,.7)); border-bottom:1px solid var(--border)}
+    @media(max-width:768px){.topbar{grid-column:1}}
     .brand{display:flex; align-items:center; gap:10px}
     .brand .logo{width:32px; height:32px; border-radius:10px; background:conic-gradient(from 200deg, var(--brand), #0c2a1d 60%); box-shadow: var(--shadow)}
     .brand h1{font-size:18px; margin:0; letter-spacing:.4px}
@@ -38,8 +47,11 @@
     .pill{padding:4px 10px; border:1px solid var(--border); background:#0e2318; border-radius:999px; font-size:12px}
 
     .sidebar{grid-row:2; background:linear-gradient(180deg, rgba(12,18,15,.92), rgba(12,18,15,.8)); border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; padding:12px 8px; gap:8px}
-    .navbtn{width:54px; height:54px; border-radius:14px; display:grid; place-items:center; border:1px solid var(--border); background:var(--panel); cursor:pointer}
-    .navbtn.active{background:var(--brand); color:#051d13; font-weight:800}
+    .navbtn{width:54px; height:54px; border-radius:14px; display:grid; place-items:center; border:1px solid var(--border); background:var(--panel); cursor:pointer; position:relative; overflow:hidden}
+    .navbtn::before{content:''; position:absolute; inset:0; background:var(--brand); opacity:0; transition:var(--transition); z-index:-1}
+    .navbtn:hover::before{opacity:0.1}
+    .navbtn.active{background:var(--brand); color:#051d13; font-weight:800; transform:scale(1.05)}
+    .navbtn.active::before{opacity:0}
 
     .content{grid-row:2; padding:18px 22px; overflow:auto}
 
@@ -87,17 +99,53 @@
     /* Tiny util */
     .rowh{display:flex; align-items:center; gap:10px}
     .right{margin-left:auto}
+    
+    /* Progress & Loading */
+    .progress-bar{height:4px; background:var(--border); border-radius:2px; overflow:hidden}
+    .progress-fill{height:100%; background:var(--brand); border-radius:2px; transition:width 0.3s ease}
+    .loading{animation:pulse 2s infinite}
+    .skeleton{background:linear-gradient(90deg, var(--border) 25%, var(--glass) 50%, var(--border) 75%); background-size:200% 100%; animation:shimmer 2s infinite}
+    @keyframes shimmer{0%{background-position:200% 0} 100%{background-position:-200% 0}}
+    
+    /* Enhanced Cards */
+    .card:hover{transform:translateY(-2px); box-shadow:var(--shadow), 0 0 0 1px var(--brand)}
+    .quiz-card{border:1px solid var(--border); background:var(--card); border-radius:14px; padding:14px; cursor:pointer}
+    .quiz-card:hover{border-color:var(--brand); transform:translateY(-2px)}
+    .quiz-card .quiz-meta{display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:12px; color:var(--muted)}
+    
+    /* Question Options */
+    .option{display:block; width:100%; padding:12px; margin:4px 0; border:1px solid var(--border); background:var(--panel); border-radius:8px; cursor:pointer; text-align:left}
+    .option:hover{border-color:var(--brand); background:var(--glass)}
+    .option.selected{border-color:var(--brand); background:rgba(34,227,146,0.1)}
+    .option.correct{border-color:var(--success); background:rgba(74,222,128,0.1)}
+    .option.incorrect{border-color:var(--danger); background:rgba(255,111,145,0.1)}
 
-    /* Audio Notes */
+    /* Audio Notes Enhancements */
     .note-card{border:1px solid var(--border); background:var(--card); border-radius:14px; padding:14px; position:relative}
     .note-card .note-header{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px}
     .note-card .note-content{color:var(--ink); line-height:1.4; margin-bottom:10px; max-height:120px; overflow:hidden}
     .note-card .note-footer{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted)}
+    .note-card .audio-controls{margin-top:8px; display:flex; gap:8px; align-items:center}
+    .audio-wave{width:60px; height:20px; background:linear-gradient(90deg, var(--brand) 0%, var(--accent2) 100%); border-radius:10px; position:relative; overflow:hidden}
+    .audio-wave::after{content:''; position:absolute; top:0; left:0; right:100%; bottom:0; background:rgba(255,255,255,0.3); animation:wave 2s infinite}
+    @keyframes wave{0%{right:100%} 100%{right:0%}}
     .importance-high{border-left:4px solid var(--danger)}
     .importance-medium{border-left:4px solid var(--warn)}
     .importance-low{border-left:4px solid var(--muted)}
     .recording-indicator{animation:pulse 1.5s infinite}
     @keyframes pulse{0%,100%{opacity:1} 50%{opacity:0.5}}
+    
+    /* Audio Recorder Enhanced */
+    .audio-recorder{border:1px solid var(--border); background:var(--card); border-radius:14px; padding:16px; margin-top:12px}
+    .audio-visualizer{height:40px; background:var(--panel); border-radius:8px; margin:12px 0; display:flex; align-items:center; justify-content:center; position:relative}
+    .audio-bars{display:flex; gap:2px; align-items:end; height:30px}
+    .audio-bar{width:3px; background:var(--muted); border-radius:2px; height:20%; transition:all 0.3s ease}
+    .audio-bar.recording{background:var(--brand); animation:audioBar 1s infinite ease-in-out}
+    @keyframes audioBar{0%,100%{height:20%} 50%{height:100%}}
+    .audio-bar:nth-child(2).recording{animation-delay:0.1s}
+    .audio-bar:nth-child(3).recording{animation-delay:0.2s}
+    .audio-bar:nth-child(4).recording{animation-delay:0.3s}
+    .audio-bar:nth-child(5).recording{animation-delay:0.4s}
   </style>
 </head>
 <body class="theme-cinematic">
@@ -108,7 +156,7 @@
       <div class="profile">
         <span id="profileLabel" class="pill">Profile: default</span>
         <button id="switchBtn" class="btn">Switch</button>
-        <select id="themeSel" class="btn"><option value="cinematic">Cinematic</option><option value="minimal">Minimal</option><option value="community">Community</option></select>
+        <select id="themeSel" class="btn"><option value="cinematic">Cinematic</option><option value="minimal">Minimal</option><option value="community">Community</option><option value="light">Light</option></select>
       </div>
     </div>
 
@@ -120,6 +168,7 @@
       <a class="navbtn" href="#/decks" data-route="#/decks" title="Decks">🃏</a>
       <a class="navbtn" href="#/essay" data-route="#/essay" title="Essay">📝</a>
       <a class="navbtn" href="#/notes" data-route="#/notes" title="Audio Notes">🎤</a>
+      <a class="navbtn" href="#/quiz" data-route="#/quiz" title="Quiz Generator">🧠</a>
       <a class="navbtn" href="#/settings" data-route="#/settings" title="Settings">⚙️</a>
     </aside>
 
@@ -151,6 +200,29 @@
         <div class="row">
           <h3>Study Mixes</h3>
           <div id="rail-mixes" class="rail"></div>
+        </div>
+        
+        <!-- Study Timer Modal -->
+        <div id="studyTimer" class="modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center">
+          <div class="stat" style="max-width:400px; width:90%">
+            <div class="rowh">
+              <h3 id="timerTitle">Focus Session</h3>
+              <button id="closeTimer" class="btn right">✕</button>
+            </div>
+            <div style="text-align:center; margin:20px 0">
+              <div id="timerDisplay" style="font-size:48px; font-weight:bold; color:var(--brand)">25:00</div>
+              <div id="timerPhase" style="color:var(--muted); margin-top:8px">Focus Time</div>
+            </div>
+            <div class="rowh">
+              <button id="startTimer" class="btn brand">Start</button>
+              <button id="pauseTimer" class="btn" style="display:none">Pause</button>
+              <button id="resetTimer" class="btn">Reset</button>
+              <button id="skipTimer" class="btn right">Skip</button>
+            </div>
+            <div class="progress-bar" style="margin-top:12px">
+              <div id="timerProgress" class="progress-fill" style="width:0%"></div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -244,13 +316,23 @@
             <h3>Current Recording</h3>
             <span id="recordingStatus" class="chip" style="display:none">Listening...</span>
           </div>
-          <div class="stat">
-            <div id="liveTranscript" style="min-height:120px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--panel); font-style:italic; color:var(--muted)">
+          <div class="audio-recorder">
+            <div class="audio-visualizer" id="audioVisualizer">
+              <div class="audio-bars">
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+              </div>
+            </div>
+            <div id="liveTranscript" style="min-height:80px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--panel); font-style:italic; color:var(--muted)">
               Click "Start Recording" to begin transcribing your audio...
             </div>
-            <div class="rowh" style="margin-top:10px">
+            <div class="rowh" style="margin-top:12px">
               <button id="saveNote" class="btn brand" disabled>💾 Save Note</button>
               <button id="clearTranscript" class="btn">🗑️ Clear</button>
+              <button id="summarizeNote" class="btn" disabled>✨ Summarize</button>
               <span id="importance" class="pill right" style="display:none"></span>
             </div>
           </div>
@@ -281,15 +363,75 @@
         </div>
       </section>
 
+      <!-- QUIZ GENERATOR -->
+      <section id="view-quiz" class="view">
+        <div class="hero">
+          <div>
+            <h2>Quiz Generator 🧠</h2>
+            <p>Create interactive quizzes to test your knowledge and reinforce learning.</p>
+          </div>
+          <div class="actions">
+            <button id="createQuiz" class="btn brand">+ Create Quiz</button>
+            <button id="importQuestions" class="btn">Import Questions</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="rowh">
+            <h3>My Quizzes</h3>
+            <div class="right rowh">
+              <select id="quizFilter">
+                <option value="all">All Subjects</option>
+                <option value="math">Mathematics</option>
+                <option value="science">Science</option>
+                <option value="history">History</option>
+                <option value="language">Language Arts</option>
+                <option value="other">Other</option>
+              </select>
+              <button id="practiceMode" class="btn">🎯 Practice Mode</button>
+            </div>
+          </div>
+          <div id="quizGrid" class="grid cols-3" style="margin-top:12px"></div>
+        </div>
+
+        <div id="quizTaker" class="view" style="display:none">
+          <div class="stat">
+            <div class="rowh">
+              <h3 id="quizTitle">Quiz Title</h3>
+              <div class="right rowh">
+                <span id="quizProgress" class="pill">1 / 10</span>
+                <span id="quizScore" class="pill">Score: 0</span>
+                <button id="exitQuiz" class="btn">Exit</button>
+              </div>
+            </div>
+            <div id="questionCard" class="note-card" style="margin-top:12px">
+              <div id="questionText" style="font-size:18px; margin-bottom:16px"></div>
+              <div id="answerOptions"></div>
+              <div class="rowh" style="margin-top:16px">
+                <button id="prevQuestion" class="btn" disabled>← Previous</button>
+                <button id="submitAnswer" class="btn brand right" disabled>Submit Answer</button>
+                <button id="nextQuestion" class="btn right" style="display:none">Next →</button>
+              </div>
+            </div>
+            <div id="feedback" class="note-card" style="margin-top:12px; display:none">
+              <div id="feedbackText"></div>
+              <div id="explanation" style="margin-top:8px; color:var(--muted)"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- SETTINGS -->
       <section id="view-settings" class="view">
         <div class="grid cols-2">
           <div class="stat">
             <h3>Personalize</h3>
             <label>Theme</label>
-            <select id="themePick"><option value="cinematic">Cinematic (Netflix)</option><option value="minimal">Minimal (YouTube)</option><option value="community">Community (Reddit)</option></select>
+            <select id="themePick"><option value="cinematic">Cinematic (Netflix)</option><option value="minimal">Minimal (YouTube)</option><option value="community">Community (Reddit)</option><option value="light">Light Mode</option></select>
             <div class="rowh" style="margin-top:10px"><label>Density</label><select id="densityPick"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></div>
             <div class="rowh" style="margin-top:10px"><label><input type="checkbox" id="focus"> Focus Mode</label></div>
+            <div class="rowh" style="margin-top:10px"><label><input type="checkbox" id="animations"> Reduced Motion</label></div>
+            <div class="rowh" style="margin-top:10px"><label><input type="checkbox" id="notifications"> Study Reminders</label></div>
           </div>
           <div class="stat">
             <h3>Data</h3>
@@ -333,7 +475,7 @@
     apply(){ const s = Store.settings(); document.body.className = 'theme-'+(s.theme||'cinematic') + (s.density==='compact'?' density-compact':''); if(s.focus) document.body.classList.add('focus'); document.getElementById('profileLabel').textContent = 'Profile: '+Store.active(); document.getElementById('themeSel').value = s.theme || 'cinematic' },
   };
 
-  window.addEventListener('hashchange', ()=>{ UI.render(); if(location.hash==="#/home") homeRender(); if(location.hash==="#/notes") renderNotes() })
+  window.addEventListener('hashchange', ()=>{ UI.render(); if(location.hash==="#/home") homeRender(); if(location.hash==="#/notes") renderNotes(); if(location.hash==="#/quiz") renderQuizzes() })
 
   // ======= HOME =======
   function homeRender(){ const d = Store.data(); const cont = document.getElementById('rail-continue'); cont.innerHTML = '';
@@ -342,8 +484,21 @@
     const soon = d.assignments.filter(a=> new Date(a.due)-Date.now() < 1000*60*60*24*5).slice(0,10);
     const railSoon = document.getElementById('rail-soon'); railSoon.innerHTML='';
     soon.forEach(a=> railSoon.appendChild(card('Due Soon', a.title, until(a.due), ()=>{ location.hash='#/assignments' })))
-    const mixes = [ ['Focus • 25m', 'Pomodoro + Lo‑fi'], ['Quick Wins', 'Finish 3 small tasks'], ['Memory Run', '10 cards × 3 decks'] ];
-    const railMix = document.getElementById('rail-mixes'); railMix.innerHTML=''; mixes.forEach(m=> railMix.appendChild(card(m[0], m[1], 'Tap to open', ()=> alert('Coming soon'))))
+    
+    // Enhanced study mixes with real functionality
+    const mixes = [ 
+      {title:'Focus • 25m', desc:'Pomodoro + Lo‑fi', type:'pomodoro', duration:25}, 
+      {title:'Quick Wins', desc:'Finish 3 small tasks', type:'tasks', count:3}, 
+      {title:'Memory Run', desc:'10 cards × 3 decks', type:'flashcards', cards:10, decks:3},
+      {title:'Deep Work', desc:'90-minute focus session', type:'deep', duration:90},
+      {title:'Review Sprint', desc:'Quick review of today\'s notes', type:'review', duration:15}
+    ];
+    const railMix = document.getElementById('rail-mixes'); railMix.innerHTML=''; 
+    mixes.forEach(m=> {
+      const mixCard = card(m.title, m.desc, 'Tap to start', ()=> startStudyMix(m));
+      mixCard.classList.add('mix-card');
+      railMix.appendChild(mixCard);
+    });
   }
 
   function card(tag, title, sub, on){ const el = document.createElement('div'); el.className='card'; el.innerHTML=`<div class="thumb"></div><div class="meta"><span class="chip">${tag}</span><span class="muted">${sub}</span></div><div style="margin-top:6px;font-weight:700">${title}</div>`; el.onclick=on; return el }
@@ -496,6 +651,7 @@
     document.getElementById('recordingStatus').classList.remove('recording-indicator');
     document.getElementById('startRecording').style.display = 'inline-flex';
     document.getElementById('stopRecording').style.display = 'none';
+    stopAudioVisualizer();
   }
 
   function categorizeNote(text) {
@@ -673,6 +829,7 @@
       noteEl.className = `note-card importance-${note.importance}`;
       
       const preview = note.text.length > 150 ? note.text.substring(0, 150) + '...' : note.text;
+      const hasAudio = note.audioData && note.audioData.length > 0;
       
       noteEl.innerHTML = `
         <div class="note-header">
@@ -680,18 +837,48 @@
           <span class="pill importance-${note.importance}">${note.importance}</span>
         </div>
         <div class="note-content">${preview}</div>
+        ${hasAudio ? `
+          <div class="audio-controls">
+            <button class="btn" data-play="${note.id}">▶️ Play</button>
+            <div class="audio-wave"></div>
+            <span class="muted">Audio Note</span>
+          </div>
+        ` : ''}
         <div class="note-footer">
           <span>${note.created}</span>
           <div class="rowh">
-            <button class="btn" data-view="${note.id}">View</button>
-            <button class="btn" data-edit="${note.id}">Edit</button>
-            <button class="btn" data-delete="${note.id}">Delete</button>
+            <button class="btn" data-view="${note.id}">👁️ View</button>
+            <button class="btn" data-edit="${note.id}">✏️ Edit</button>
+            <button class="btn" data-delete="${note.id}">🗑️ Delete</button>
+            ${hasAudio ? `<button class="btn" data-summarize="${note.id}">✨ Summarize</button>` : ''}
           </div>
         </div>
       `;
       
       grid.appendChild(noteEl);
     });
+
+    // Add event listeners
+    grid.querySelectorAll('button[data-view]').forEach(btn => {
+      btn.onclick = () => viewNote(Number(btn.dataset.view));
+    });
+    
+    grid.querySelectorAll('button[data-edit]').forEach(btn => {
+      btn.onclick = () => editNote(Number(btn.dataset.edit));
+    });
+    
+    grid.querySelectorAll('button[data-delete]').forEach(btn => {
+      btn.onclick = () => deleteNote(Number(btn.dataset.delete));
+    });
+
+    grid.querySelectorAll('button[data-play]').forEach(btn => {
+      btn.onclick = () => playAudioNote(Number(btn.dataset.play));
+    });
+
+    grid.querySelectorAll('button[data-summarize]').forEach(btn => {
+      btn.onclick = () => summarizeNote(Number(btn.dataset.summarize));
+    });
+  }
 
     // Add event listeners
     grid.querySelectorAll('button[data-view]').forEach(btn => {
@@ -743,18 +930,421 @@
     renderNotes();
   }
 
+  // ======= ENHANCED AUDIO FUNCTIONS =======
+  function playAudioNote(noteId) {
+    const data = Store.data();
+    const note = data.notes.find(n => n.id === noteId);
+    if (!note || !note.audioData) {
+      alert('No audio data available for this note.');
+      return;
+    }
+    
+    // Simulate audio playback (in a real app, you'd play the actual audio)
+    alert(`🎵 Playing audio note: "${note.text.substring(0, 50)}..."\n\nDuration: ${note.audioDuration || '30 seconds'}\nQuality: High\n\n(In a real implementation, this would play the recorded audio)`);
+  }
+
+  function summarizeNote(noteId, tempNote = null) {
+    let note;
+    if (tempNote) {
+      note = tempNote;
+    } else {
+      const data = Store.data();
+      note = data.notes.find(n => n.id === noteId);
+    }
+    
+    if (!note) return;
+    
+    // AI-powered summarization (simulated)
+    const words = note.text.split(' ');
+    let summary = '';
+    
+    if (words.length <= 20) {
+      summary = note.text;
+    } else {
+      // Extract key sentences (simplified AI summary)
+      const sentences = note.text.split('.').filter(s => s.trim().length > 0);
+      const importantSentences = sentences.slice(0, Math.ceil(sentences.length / 3));
+      summary = importantSentences.join('. ') + '.';
+    }
+    
+    const modal = `
+      📝 AI Summary of Note
+      
+      Original Length: ${words.length} words
+      Summary Length: ${summary.split(' ').length} words
+      
+      SUMMARY:
+      ${summary}
+      
+      KEY TOPICS:
+      • ${note.category.charAt(0).toUpperCase() + note.category.slice(1)}
+      • Importance: ${note.importance}
+      • Created: ${note.created}
+    `;
+    
+    alert(modal);
+  }
+
+  function startAudioVisualizer() {
+    const visualizer = document.getElementById('audioVisualizer');
+    const bars = visualizer.querySelectorAll('.audio-bar');
+    
+    // Animate audio bars during recording
+    bars.forEach((bar, i) => {
+      bar.classList.add('recording');
+    });
+  }
+
+  function stopAudioVisualizer() {
+    const visualizer = document.getElementById('audioVisualizer');
+    const bars = visualizer.querySelectorAll('.audio-bar');
+    
+    bars.forEach(bar => {
+      bar.classList.remove('recording');
+    });
+  }
+
+  // ======= QUIZ GENERATOR =======
+  function renderQuizzes() {
+    const d = Store.data();
+    if (!d.quizzes) d.quizzes = [];
+    const grid = document.getElementById('quizGrid');
+    const filter = document.getElementById('quizFilter').value;
+    
+    let quizzes = d.quizzes;
+    if (filter !== 'all') {
+      quizzes = quizzes.filter(q => q.subject === filter);
+    }
+    
+    grid.innerHTML = '';
+    if (quizzes.length === 0) {
+      grid.innerHTML = '<div class="muted">No quizzes yet. Create your first quiz!</div>';
+      return;
+    }
+    
+    quizzes.forEach((quiz, i) => {
+      const el = document.createElement('div');
+      el.className = 'quiz-card';
+      el.innerHTML = `
+        <div style="font-weight:700">${quiz.title}</div>
+        <div class="quiz-meta">
+          <span class="chip">${quiz.subject}</span>
+          <span>${quiz.questions.length} questions</span>
+        </div>
+        <div class="rowh" style="margin-top:10px">
+          <button class="btn brand" data-take="${i}">Take Quiz</button>
+          <button class="btn" data-edit="${i}">Edit</button>
+          <button class="btn" data-delete="${i}">Delete</button>
+        </div>
+      `;
+      grid.appendChild(el);
+    });
+    
+    grid.querySelectorAll('button[data-take]').forEach(btn => {
+      btn.onclick = () => startQuiz(Number(btn.dataset.take));
+    });
+    grid.querySelectorAll('button[data-edit]').forEach(btn => {
+      btn.onclick = () => editQuiz(Number(btn.dataset.edit));
+    });
+    grid.querySelectorAll('button[data-delete]').forEach(btn => {
+      btn.onclick = () => deleteQuiz(Number(btn.dataset.delete));
+    });
+  }
+
+  function createQuiz() {
+    const title = prompt('Quiz Title:');
+    if (!title) return;
+    
+    const subject = prompt('Subject (math/science/history/language/other):') || 'other';
+    const d = Store.data();
+    if (!d.quizzes) d.quizzes = [];
+    
+    const quiz = {
+      id: Date.now(),
+      title,
+      subject,
+      questions: [],
+      created: new Date().toISOString()
+    };
+    
+    // Add some sample questions
+    while (true) {
+      const question = prompt('Question text (leave blank to finish):');
+      if (!question) break;
+      
+      const options = [];
+      for (let i = 0; i < 4; i++) {
+        const option = prompt(`Option ${i + 1}:`);
+        if (option) options.push(option);
+      }
+      
+      if (options.length < 2) {
+        alert('Need at least 2 options');
+        continue;
+      }
+      
+      const correctIndex = prompt(`Which option is correct? (1-${options.length}):`);
+      const correct = parseInt(correctIndex) - 1;
+      
+      if (correct >= 0 && correct < options.length) {
+        quiz.questions.push({
+          question,
+          options,
+          correct,
+          explanation: prompt('Explanation (optional):') || ''
+        });
+      }
+    }
+    
+    if (quiz.questions.length > 0) {
+      d.quizzes.push(quiz);
+      Store.setData(d);
+      renderQuizzes();
+    }
+  }
+
+  function editQuiz(index) {
+    // Simplified edit - just allow adding more questions
+    const d = Store.data();
+    const quiz = d.quizzes[index];
+    
+    while (true) {
+      const question = prompt('Add new question (leave blank to finish):');
+      if (!question) break;
+      
+      const options = [];
+      for (let i = 0; i < 4; i++) {
+        const option = prompt(`Option ${i + 1}:`);
+        if (option) options.push(option);
+      }
+      
+      if (options.length >= 2) {
+        const correctIndex = prompt(`Which option is correct? (1-${options.length}):`);
+        const correct = parseInt(correctIndex) - 1;
+        
+        if (correct >= 0 && correct < options.length) {
+          quiz.questions.push({
+            question,
+            options,
+            correct,
+            explanation: prompt('Explanation (optional):') || ''
+          });
+        }
+      }
+    }
+    
+    Store.setData(d);
+    renderQuizzes();
+  }
+
+  function deleteQuiz(index) {
+    if (!confirm('Delete this quiz?')) return;
+    const d = Store.data();
+    d.quizzes.splice(index, 1);
+    Store.setData(d);
+    renderQuizzes();
+  }
+
+  let currentQuiz = null;
+  let currentQuestionIndex = 0;
+  let quizScore = 0;
+  let selectedAnswer = null;
+
+  function startQuiz(index) {
+    const d = Store.data();
+    currentQuiz = d.quizzes[index];
+    currentQuestionIndex = 0;
+    quizScore = 0;
+    selectedAnswer = null;
+    
+    document.getElementById('view-quiz').style.display = 'none';
+    document.getElementById('quizTaker').style.display = 'block';
+    
+    showQuestion();
+  }
+
+  function showQuestion() {
+    if (!currentQuiz || currentQuestionIndex >= currentQuiz.questions.length) {
+      endQuiz();
+      return;
+    }
+    
+    const question = currentQuiz.questions[currentQuestionIndex];
+    document.getElementById('quizTitle').textContent = currentQuiz.title;
+    document.getElementById('quizProgress').textContent = `${currentQuestionIndex + 1} / ${currentQuiz.questions.length}`;
+    document.getElementById('quizScore').textContent = `Score: ${quizScore}`;
+    document.getElementById('questionText').textContent = question.question;
+    
+    const optionsDiv = document.getElementById('answerOptions');
+    optionsDiv.innerHTML = '';
+    
+    question.options.forEach((option, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'option';
+      btn.textContent = option;
+      btn.onclick = () => selectAnswer(i);
+      optionsDiv.appendChild(btn);
+    });
+    
+    document.getElementById('feedback').style.display = 'none';
+    document.getElementById('submitAnswer').disabled = true;
+    document.getElementById('nextQuestion').style.display = 'none';
+    selectedAnswer = null;
+  }
+
+  function selectAnswer(index) {
+    selectedAnswer = index;
+    document.querySelectorAll('.option').forEach((opt, i) => {
+      opt.classList.toggle('selected', i === index);
+    });
+    document.getElementById('submitAnswer').disabled = false;
+  }
+
+  function submitAnswer() {
+    if (selectedAnswer === null) return;
+    
+    const question = currentQuiz.questions[currentQuestionIndex];
+    const correct = selectedAnswer === question.correct;
+    
+    if (correct) quizScore++;
+    
+    document.querySelectorAll('.option').forEach((opt, i) => {
+      if (i === question.correct) {
+        opt.classList.add('correct');
+      } else if (i === selectedAnswer && !correct) {
+        opt.classList.add('incorrect');
+      }
+      opt.disabled = true;
+    });
+    
+    const feedback = document.getElementById('feedback');
+    document.getElementById('feedbackText').textContent = correct ? '✅ Correct!' : '❌ Incorrect';
+    document.getElementById('explanation').textContent = question.explanation || '';
+    feedback.style.display = 'block';
+    
+    document.getElementById('submitAnswer').style.display = 'none';
+    document.getElementById('nextQuestion').style.display = 'inline-flex';
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    showQuestion();
+  }
+
+  function endQuiz() {
+    const percentage = Math.round((quizScore / currentQuiz.questions.length) * 100);
+    alert(`Quiz Complete!\n\nScore: ${quizScore}/${currentQuiz.questions.length} (${percentage}%)`);
+    
+    document.getElementById('view-quiz').style.display = 'block';
+    document.getElementById('quizTaker').style.display = 'none';
+  }
+
+  // ======= STUDY TIMER =======
+  let studyTimer = null;
+  let timerStartTime = 0;
+  let timerDuration = 0;
+  let timerPaused = false;
+
+  function startStudyMix(mix) {
+    if (mix.type === 'pomodoro' || mix.type === 'deep') {
+      startTimer(mix.title, mix.duration * 60);
+    } else if (mix.type === 'tasks') {
+      alert(`Quick Wins Mode!\n\nTry to complete ${mix.count} small tasks in the next 30 minutes.\n\n• Review flashcards\n• Organize notes\n• Check assignments\n• Clean workspace\n• Update calendar`);
+    } else if (mix.type === 'flashcards') {
+      if (Store.data().decks.length === 0) {
+        alert('Create some flashcard decks first!');
+        location.hash = '#/decks';
+      } else {
+        alert(`Memory Run Mode!\n\nReview ${mix.cards} cards from your decks. Head to the Decks section to start studying.`);
+        location.hash = '#/decks';
+      }
+    } else if (mix.type === 'review') {
+      startTimer(mix.title, mix.duration * 60);
+    }
+  }
+
+  function startTimer(title, duration) {
+    document.getElementById('timerTitle').textContent = title;
+    document.getElementById('studyTimer').style.display = 'flex';
+    timerDuration = duration;
+    timerStartTime = Date.now();
+    timerPaused = false;
+    
+    updateTimerDisplay();
+    studyTimer = setInterval(updateTimerDisplay, 1000);
+  }
+
+  function updateTimerDisplay() {
+    if (timerPaused) return;
+    
+    const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+    const remaining = Math.max(0, timerDuration - elapsed);
+    
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    
+    document.getElementById('timerDisplay').textContent = 
+      `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    const progress = ((timerDuration - remaining) / timerDuration) * 100;
+    document.getElementById('timerProgress').style.width = `${progress}%`;
+    
+    if (remaining === 0) {
+      clearInterval(studyTimer);
+      alert('⏰ Time\'s up! Great work on your study session!');
+      closeTimer();
+    }
+  }
+
+  function pauseTimer() {
+    timerPaused = !timerPaused;
+    if (timerPaused) {
+      clearInterval(studyTimer);
+      document.getElementById('pauseTimer').textContent = 'Resume';
+    } else {
+      timerStartTime = Date.now() - (timerDuration - getRemainingTime()) * 1000;
+      studyTimer = setInterval(updateTimerDisplay, 1000);
+      document.getElementById('pauseTimer').textContent = 'Pause';
+    }
+  }
+
+  function getRemainingTime() {
+    const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+    return Math.max(0, timerDuration - elapsed);
+  }
+
+  function resetTimer() {
+    clearInterval(studyTimer);
+    timerStartTime = Date.now();
+    timerPaused = false;
+    updateTimerDisplay();
+    document.getElementById('pauseTimer').textContent = 'Pause';
+  }
+
+  function closeTimer() {
+    clearInterval(studyTimer);
+    document.getElementById('studyTimer').style.display = 'none';
+  }
+
   // ======= Boot =======
   function boot(){ // theme
-    UI.apply(); UI.render(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); renderNotes(); settingsInit();
+    UI.apply(); UI.render(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); renderNotes(); renderQuizzes(); settingsInit();
 
     // topbar theme + switcher
     document.getElementById('themeSel').onchange = (e)=>{ const s=Store.settings(); s.theme=e.target.value; Store.setSettings(s); UI.apply() }
-    document.getElementById('switchBtn').onclick = ()=>{ const id=prompt('Switch/create profile id'); if(!id) return; Store.switch(id); UI.apply(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); renderNotes(); settingsInit() }
+    document.getElementById('switchBtn').onclick = ()=>{ const id=prompt('Switch/create profile id'); if(!id) return; Store.switch(id); UI.apply(); homeRender(); renderAssignments(); renderPlanner(); renderGPA(); renderDecks(); renderNotes(); renderQuizzes(); settingsInit() }
 
-    // search (very simple)
+    // search (enhanced)
     document.getElementById('q').addEventListener('input', (e)=>{
       const q=e.target.value.toLowerCase(); if(!q){ renderAssignments(); return }
-      const d=Store.data(); const results=[...d.assignments.filter(a=> (a.title+a.cls).toLowerCase().includes(q)).slice(0,6), ...d.decks.filter(x=>x.title.toLowerCase().includes(q)).slice(0,4)]; const rail=document.getElementById('rail-continue'); rail.innerHTML=''; results.forEach(r=> rail.appendChild(card('Search', r.title||r.cls||'Result', '', ()=>{})))
+      const d=Store.data(); 
+      const results=[
+        ...d.assignments.filter(a=> (a.title+a.cls).toLowerCase().includes(q)).slice(0,4), 
+        ...d.decks.filter(x=>x.title.toLowerCase().includes(q)).slice(0,3),
+        ...(d.quizzes||[]).filter(x=>x.title.toLowerCase().includes(q)).slice(0,3)
+      ]; 
+      const rail=document.getElementById('rail-continue'); rail.innerHTML=''; 
+      results.forEach(r=> rail.appendChild(card('Search', r.title||r.cls||'Result', '', ()=>{})))
     })
 
     // home actions
@@ -772,10 +1362,32 @@
     // essay
     document.getElementById('esGen').onclick=genOutline; document.getElementById('esCopy').onclick=()=>{ const ta=document.getElementById('esOut'); ta.select(); document.execCommand('copy') }
 
+    // quiz generator
+    document.getElementById('createQuiz').onclick = createQuiz;
+    document.getElementById('quizFilter').onchange = renderQuizzes;
+    document.getElementById('nextQuestion').onclick = nextQuestion;
+    document.getElementById('submitAnswer').onclick = submitAnswer;
+    document.getElementById('exitQuiz').onclick = () => {
+      document.getElementById('view-quiz').style.display = 'block';
+      document.getElementById('quizTaker').style.display = 'none';
+    };
+
+    // study timer
+    document.getElementById('startTimer').onclick = () => {
+      document.getElementById('startTimer').style.display = 'none';
+      document.getElementById('pauseTimer').style.display = 'inline-flex';
+      startTimer(document.getElementById('timerTitle').textContent, timerDuration);
+    };
+    document.getElementById('pauseTimer').onclick = pauseTimer;
+    document.getElementById('resetTimer').onclick = resetTimer;
+    document.getElementById('closeTimer').onclick = closeTimer;
+
     // settings widgets
     document.getElementById('themePick').onchange=(e)=>{ const s=Store.settings(); s.theme=e.target.value; Store.setSettings(s); UI.apply() }
     document.getElementById('densityPick').onchange=(e)=>{ const s=Store.settings(); s.density=e.target.value; Store.setSettings(s); UI.apply() }
     document.getElementById('focus').onchange=(e)=>{ const s=Store.settings(); s.focus=e.target.checked; Store.setSettings(s); UI.apply() }
+    document.getElementById('animations').onchange=(e)=>{ const s=Store.settings(); s.reducedMotion=e.target.checked; Store.setSettings(s); if(s.reducedMotion) document.body.style.setProperty('--transition', 'none'); else document.body.style.removeProperty('--transition') }
+    document.getElementById('notifications').onchange=(e)=>{ const s=Store.settings(); s.notifications=e.target.checked; Store.setSettings(s) }
     document.getElementById('exportJson').onclick=()=>{ const url=URL.createObjectURL(new Blob([Store.export()],{type:'application/json'})); const a=Object.assign(document.createElement('a'),{href:url,download:'classaid.json'}); a.click(); setTimeout(()=>URL.revokeObjectURL(url),500) }
     document.getElementById('importJson').onclick=()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=async()=>{ const t=await inp.files[0].text(); Store.import(t); alert('Imported. Reloading…'); location.reload() }; inp.click() }
     document.getElementById('exportEnc').onclick=exportEnc; document.getElementById('importEnc').onclick=importEnc
@@ -786,6 +1398,12 @@
     document.getElementById('stopRecording').onclick = stopRecording;
     document.getElementById('saveNote').onclick = saveNote;
     document.getElementById('clearTranscript').onclick = clearTranscript;
+    document.getElementById('summarizeNote').onclick = () => {
+      if (currentTranscript.trim()) {
+        const tempNote = { id: -1, text: currentTranscript, category: 'temp', importance: calculateImportance(currentTranscript), created: new Date().toLocaleString() };
+        summarizeNote(-1, tempNote);
+      }
+    };
     document.getElementById('filterCategory').onchange = renderNotes;
     document.getElementById('sortBy').onchange = renderNotes;
   }
